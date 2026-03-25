@@ -1,0 +1,130 @@
+{
+  "0": "cbor-web",
+  "1": 3,
+  "2": {
+    "name": "Pacific Planet",
+    "domain": "pacific-planet.com",
+    "description": "Education nature, formations foret comestible, ateliers decouverte — Bretagne",
+    "lang": "fr",
+    "contact": {
+      "phone": "+33659028595"
+    },
+    "geo": {
+      "region": "Cotes-d'Armor, Bretagne",
+      "country": "FR"
+    },
+    "legal": {},
+    "network": [
+      {
+        "domain": "laforetnousregale.fr",
+        "name": "La Foret Nous Regale",
+        "description": "Foret comestible bio, produits forestiers — Bretagne"
+      },
+      {
+        "domain": "crm.laforetnousregale.fr",
+        "name": "Sciage Mobile B701",
+        "description": "Service de sciage mobile sur site — Cotes-d'Armor"
+      },
+      {
+        "domain": "eloiseplot-dieteticienne.com",
+        "name": "Eloise Plot Dieteticienne",
+        "description": "Dieteticienne-nutritionniste, consultations et accompagnement"
+      },
+      {
+        "domain": "deltopide.fr",
+        "name": "Deltopide FR",
+        "description": "Agence digitale, creation web, IA — France"
+      },
+      {
+        "domain": "deltopide.es",
+        "name": "Deltopide ES",
+        "description": "Agencia digital, desarrollo web, IA — Espana"
+      },
+      {
+        "domain": "deltopide.com",
+        "name": "Deltopide",
+        "description": "Digital agency, web development, AI — International"
+      },
+      {
+        "domain": "verdetao.com",
+        "name": "Verdetao",
+        "description": "Setas gourmet y suplementos naturales del bosque — Espana"
+      }
+    ],
+    "generated_at": "2026-03-24T22:29:13+00:00"
+  },
+  "3": {
+    "/": {
+      "title": "Pacific Planet - Agroforesterie & Biodiversité en Bretagne",
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "updated": "2026-03-24T22:29:13+00:00",
+      "content": [
+        {
+          "l": 1,
+          "t": "h",
+          "v": "Faites pousser vos compétences"
+        },
+        {
+          "l": 2,
+          "t": "h",
+          "v": "Explorez nos activités"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Formations & Ateliers"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Animations & Séminaires"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Bureau d'études"
+        },
+        {
+          "_truncated": "34 more blocks in full file"
+        }
+      ]
+    },
+    "/formations": {
+      "title": "Formations agroforesterie Bretagne | Pacific Planet",
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "updated": "2026-03-24T22:29:13+00:00",
+      "content": [
+        {
+          "l": 1,
+          "t": "h",
+          "v": "Formations"
+        },
+        {
+          "l": 2,
+          "t": "h",
+          "v": "Formations courtes d'une semaine"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Initiation au concept d'agroforesterie"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Gestion forestière durable"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Allier alimentation et biodiversité"
+        },
+        {
+          "_truncated": "36 more blocks in full file"
+        }
+      ]
+    }
+  },
+  "_note": "Truncated example — full .cbor files contain all pages and all content blocks",
+  "_total_pages_in_file": 6
+}
