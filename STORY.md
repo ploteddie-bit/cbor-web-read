@@ -49,7 +49,7 @@ A 160 KB Shopify page becomes 8 KB of CBOR. A complete 84-page site fits in 700 
 
 The numbers are staggering:
 
-- Data centres consumed **460 TWh** of electricity in 2022 — projected to reach **620-1,050 TWh** by 2026
+- Data centres consumed **415 TWh** of electricity in 2024 — projected to reach **945 TWh** by 2030 (IEA, "Energy and AI", 2025)
 - The digital sector's energy consumption grows **9% per year**
 - An average website with 10,000 monthly visits emits **31.5 kg of CO2** per year
 - Web page weight has grown **+203%** since 2015
@@ -120,7 +120,7 @@ Une page Shopify de 160 Ko devient 8 Ko de CBOR. Un site complet de 84 pages tie
 
 Les chiffres sont vertigineux :
 
-- Les centres de donnees ont consomme **460 TWh** d'electricite en 2022 — prevision de **620 a 1 050 TWh** d'ici 2026
+- Les centres de donnees ont consomme **415 TWh** d'electricite en 2024 — prevision de **945 TWh** d'ici 2030 (AIE, "Energy and AI", 2025)
 - La consommation energetique du numerique augmente de **9% par an**
 - Un site web moyen avec 10 000 visites mensuelles emet **31,5 kg de CO2** par an
 - Le poids des pages web a augmente de **+203%** depuis 2015
@@ -179,7 +179,7 @@ Una pagina Shopify de 160 KB se convierte en 8 KB de CBOR. Un sitio completo de 
 
 ### Capitulo 5 — El imperativo ecologico
 
-- Los centros de datos consumieron **460 TWh** en 2022 — prevision de **620-1.050 TWh** para 2026
+- Los centros de datos consumieron **415 TWh** en 2024 — prevision de **945 TWh** para 2030 (IEA, "Energy and AI", 2025)
 - El consumo energetico digital crece **9% anual**
 - El peso de las paginas web ha aumentado **+203%** desde 2015
 
@@ -204,7 +204,7 @@ Protocolo de lectura publicado bajo **CC0 — Dominio Publico**. Leer es gratis.
 
 ### 第五章 — 生态责任
 
-数据中心 2022 年消耗 **460 TWh** 电力，预计 2026 年达到 **620-1,050 TWh**。每个无用字节都是能源浪费。CBOR-Web 让网络对地球**更轻**。
+数据中心 2022 年消耗 **415 TWh** 电力，预计 2026 年达到 **620-1,050 TWh**。每个无用字节都是能源浪费。CBOR-Web 让网络对地球**更轻**。
 
 协议以 **CC0 公共领域** 发布。阅读自由，无限制。
 
@@ -223,7 +223,7 @@ Protocolo de lectura publicado bajo **CC0 — Dominio Publico**. Leer es gratis.
 
 ### الفصل الخامس — الضرورة البيئية
 
-استهلكت مراكز البيانات **460 تيراواط ساعة** في 2022. كل بايت غير ضروري هو طاقة مهدرة.
+استهلكت مراكز البيانات **415 تيراواط ساعة** في 2024 (IEA). كل بايت غير ضروري هو طاقة مهدرة.
 
 البروتوكول منشور تحت **CC0 — ملكية عامة**. القراءة حرة للجميع.
 
@@ -242,7 +242,7 @@ Protocolo de lectura publicado bajo **CC0 — Dominio Publico**. Leer es gratis.
 
 ### अध्याय 5 — पारिस्थितिक अनिवार्यता
 
-डेटा केंद्रों ने 2022 में **460 TWh** बिजली की खपत की। हर अनावश्यक बाइट बर्बाद ऊर्जा है।
+डेटा केंद्रों ने 2022 में **415 TWh** बिजली की खपत की। हर अनावश्यक बाइट बर्बाद ऊर्जा है।
 
 प्रोटोकॉल **CC0 — सार्वजनिक डोमेन** के तहत प्रकाशित। पढ़ना मुफ्त, बिना प्रतिबंध।
 
@@ -261,7 +261,7 @@ Em 2013, Carsten Bormann (Universidade de Bremen) e Paul Hoffman (ICANN) inventa
 
 ### Capitulo 5 — O imperativo ecologico
 
-Data centers consumiram **460 TWh** em 2022. Cada byte desnecessario e energia desperdicada. CBOR-Web torna a web **mais leve para o planeta**.
+Data centers consumiram **415 TWh** em 2022. Cada byte desnecessario e energia desperdicada. CBOR-Web torna a web **mais leve para o planeta**.
 
 Protocolo publicado sob **CC0 — Dominio Publico**.
 
@@ -280,7 +280,7 @@ Protocolo publicado sob **CC0 — Dominio Publico**.
 
 ### Глава 5 — Экологический императив
 
-Дата-центры потребили **460 ТВт·ч** в 2022 году. Каждый лишний байт — потраченная энергия.
+Дата-центры потребили **415 ТВт·ч** в 2024 году (IEA). Каждый лишний байт — потраченная энергия.
 
 Протокол опубликован под **CC0 — общественное достояние**.
 
@@ -299,7 +299,7 @@ Protocolo publicado sob **CC0 — Dominio Publico**.
 
 ### 第5章 — 環境への責務
 
-データセンターは2022年に **460 TWh** を消費。不要なバイトはすべてエネルギーの無駄です。
+データセンターは2022年に **415 TWh** を消費。不要なバイトはすべてエネルギーの無駄です。
 
 プロトコルは **CC0（パブリックドメイン）** で公開。自由に読めます。
 
@@ -318,7 +318,7 @@ Protocolo publicado sob **CC0 — Dominio Publico**.
 
 ### Kapitel 5 — Der okologische Imperativ
 
-Rechenzentren verbrauchten 2022 **460 TWh**. Jedes unnotige Byte ist verschwendete Energie. CBOR-Web macht das Web **leichter fur den Planeten**.
+Rechenzentren verbrauchten 2022 **415 TWh**. Jedes unnotige Byte ist verschwendete Energie. CBOR-Web macht das Web **leichter fur den Planeten**.
 
 Protokoll unter **CC0 — Gemeinfreiheit** veroffentlicht.
 
@@ -337,7 +337,7 @@ Protokoll unter **CC0 — Gemeinfreiheit** veroffentlicht.
 
 ### 5장 — 생태적 의무
 
-데이터센터는 2022년 **460 TWh**를 소비했습니다. 불필요한 바이트는 모두 에너지 낭비입니다.
+데이터센터는 2022년 **415 TWh**를 소비했습니다. 불필요한 바이트는 모두 에너지 낭비입니다.
 
 프로토콜은 **CC0 — 퍼블릭 도메인**으로 공개되었습니다.
 
@@ -356,7 +356,7 @@ Pada 2013, Carsten Bormann (Universitas Bremen) dan Paul Hoffman (ICANN) mencipt
 
 ### Bab 5 — Keharusan ekologis
 
-Pusat data mengonsumsi **460 TWh** pada 2022. Setiap byte yang tidak perlu adalah energi yang terbuang.
+Pusat data mengonsumsi **415 TWh** pada 2022. Setiap byte yang tidak perlu adalah energi yang terbuang.
 
 Protokol diterbitkan di bawah **CC0 — Domain Publik**.
 
@@ -368,6 +368,6 @@ Protokol diterbitkan di bawah **CC0 — Domain Publik**.
 - [RFC 8949 — CBOR (2020)](https://www.rfc-editor.org/rfc/rfc8949.html) — Internet Standard
 - [CBOR — Wikipedia](https://en.wikipedia.org/wiki/CBOR)
 - [HTTP Archive — Page Weight 2025](https://almanac.httparchive.org/en/2025/page-weight) — Median 2.86 MB
-- [IEA — Data centres energy consumption](https://www.iea.org/reports/global-energy-review-2025/co2-emissions) — 460 TWh (2022)
+- [IEA — Energy and AI](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai) — 415 TWh (2024), projected 945 TWh by 2030
 - [Sustainable Web Design](https://sustainablewebdesign.org/estimating-digital-emissions/) — Carbon footprint methodology
 - [Website Carbon Calculator](https://www.websitecarbon.com/) — Per-site CO2 estimation

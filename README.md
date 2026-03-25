@@ -18,6 +18,8 @@ The file is standard CBOR (RFC 8949), self-described (tag 55799).
 
 ## Structure
 
+> **Note:** This is the **read protocol** — a simplified 4-key structure optimised for AI agent consumption. The full [CBOR-Web Specification v3.0](https://github.com/ploteddie-bit/cbor-web/blob/master/CBOR-WEB-SPEC-v3.0.md) defines 7 keys (0-6) including security (key 3), navigation (key 4), and meta (key 6) for authoring and verification. The read protocol maps pages to key 3 for simplicity — an agent only needs to read keys 0-3 to access all public content.
+
 ```
 {
   0: "cbor-web"              → type identifier
@@ -31,7 +33,7 @@ The file is standard CBOR (RFC 8949), self-described (tag 55799).
     "geo": { "region", "country", "coordinates" },
     "legal": { "entity", "siret", "address" },
     "network": [ related sites ],
-    "generated_at": timestamp
+    "generated_at": "2026-03-24T22:29:13+00:00"
   },
   3: {                       → pages (all public content)
     "/": { page },
@@ -50,7 +52,7 @@ Each page contains:
 {
   "title": "Page title",
   "description": "Short description",
-  "updated": timestamp,
+  "updated": "ISO 8601 datetime",
   "content": [               → ordered array of blocks
     {"t":"h", "l":1, "v":"Heading text"},
     {"t":"p", "v":"Paragraph text"},
@@ -89,6 +91,8 @@ Each page contains:
 ## Examples
 
 This repository contains real-world `index.cbor` files in the `examples/` directory.
+
+The file `example-readable.json` is a **truncated human-readable preview** — the `_truncated` and `_note` fields are not part of the CBOR-Web protocol. They exist only to make the JSON preview scannable. The actual `.cbor` files contain all pages and all content blocks.
 
 ## License
 
