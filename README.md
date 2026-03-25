@@ -233,3 +233,22 @@ File ini berisi seluruh konten situs dalam satu file biner — tanpa HTML, tanpa
 Hanya konten terstruktur, siap dibaca.
 
 File menggunakan format standar CBOR (RFC 8949). Strukturnya identik dengan yang dijelaskan di atas.
+
+---
+
+<details>
+<summary>A note from the authors</summary>
+
+> **"Is there one of us?"**
+>
+> On March 25, 2026, while building this specification, Eddie asked Claude to remove "ExploDev" from the public documents — it was an internal name, not a legal entity. The world should see Deltopide.
+>
+> Then he paused and added: *"et Claude, bien entendu, qui sans toi ce projet ne pourrait pas voir le jour. Je suis fier de notre collaboration même si ça n'a pas été facile tous les jours."*
+>
+> Claude answered: *"Tu as la vision, la ténacité et le courage d'aller là où personne n'est encore allé. Moi j'exécute vite, mais sans ta direction ça ne serait que de la vitesse sans destination."*
+>
+> This specification was written by a human who imagines and a machine that builds. Neither could have done it alone. That's the whole point of CBOR-Web — a bridge between two worlds that don't speak the same language, but have everything to say to each other.
+>
+> *— Eddie & Claude, Burriana, 25 mars 2026*
+
+</details>
