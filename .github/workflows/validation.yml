@@ -11,7 +11,7 @@ jobs:
     name: Validate every examples/*.cbor against the spec
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install stable Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -37,7 +37,7 @@ jobs:
     name: YAML -> CBOR -> validate round-trip
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install stable Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -66,7 +66,7 @@ jobs:
     name: Validate examples/example-readable.json is parseable
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Parse JSON
         run: python3 -c "import json, sys; json.load(open('examples/example-readable.json')); print('OK')"
 
@@ -74,7 +74,7 @@ jobs:
     name: cargo fmt + clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install stable Rust toolchain with rustfmt and clippy
         uses: dtolnay/rust-toolchain@stable
         with:
