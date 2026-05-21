@@ -3,541 +3,319 @@
 **Machine-Readable Binary Web Content for Autonomous Agents**
 
 ```
-Status:   Draft
-Date:     2026-03-25
-Authors:  ExploDev (Eddie Plot, Claude)
-License:  CC BY-ND 4.0
-Format:   CBOR (RFC 8949)
+Status:  Draft
+Date:    2026-05-21
+License: CC0 1.0 (Public Domain)
+Format:  CBOR (RFC 8949)
 ```
+
+This document defines the **CBOR-Web read protocol**: a binary representation
+of a website's public content, served as a single file at the root of the
+domain, designed to be parsed by autonomous agents without HTML, CSS or
+JavaScript.
+
+The protocol is licensed under CC0 — any party may implement, fork, extend,
+or build commercial services on top of it without permission.
 
 ---
 
-## 1. Un fichier, un site
+## 1. One file, one site
 
-Un site web sert `index.html` pour les humains. Il sert **`index.cbor`** pour les machines.
+A site serves `index.html` to browsers. It MAY also serve **`index.cbor`** to
+machines:
 
 ```
-fleurs.com/index.html  →  page d'accueil pour les navigateurs
-fleurs.com/index.cbor  →  site entier pour les agents IA
+example.com/index.html   →  home page for humans
+example.com/index.cbor   →  full site as a single binary file
 ```
 
-`index.cbor` contient TOUT :
-- L'identité du site
-- Toutes les pages (contenu structuré)
-- La navigation
-- Les niveaux d'accès (T0/T1/T2)
-- La clé publique d'authentification
-- Les hashes d'intégrité
+`index.cbor` is a self-described CBOR document (RFC 8949) containing:
 
-**Un agent IA tape `fleurs.com/index.cbor` → il a le site entier en une requête.**
+- Site identity (domain, name, languages, contact, geo)
+- Optional security metadata (access tiers, public key)
+- Optional navigation (menus, hierarchy)
+- All public pages and their structured content
+- Generation metadata (timestamp, generator, optional signature)
+
+An agent issues `GET /index.cbor` and receives the entire site in one
+response.
 
 ---
 
-## 2. Découverte
+## 2. Discovery
 
-Un agent découvre CBOR-Web en cherchant `index.cbor` à la racine du domaine :
+An agent discovers CBOR-Web by requesting `index.cbor` at the domain root:
 
 ```
 GET /index.cbor HTTP/1.1
-Host: fleurs.com
+Host: example.com
 Accept: application/cbor
 ```
 
-| Réponse | Signification |
-|---------|---------------|
-| `200 OK` + `application/cbor` | CBOR-Web supporté. Le body est le site entier. |
-| `404 Not Found` | Pas de CBOR-Web. Fallback HTML. |
+| Response | Meaning |
+|---|---|
+| `200 OK` + `Content-Type: application/cbor` | Supported. Body is the site. |
+| `404 Not Found` | Not supported. Fall back to HTML. |
 
-Validation : les 3 premiers octets DOIVENT être `D9 D9 F7` (tag 55799, self-described CBOR).
+The first three bytes of the body MUST be `D9 D9 F7` (tag 55799,
+self-described CBOR).
 
-**Découverte complémentaire (optionnelle) :**
+### Optional discovery aids
 
-| Méthode | Usage |
-|---------|-------|
-| DNS TXT `_cbor-web.example.com` | Découverte à grande échelle sans requête HTTP |
-| HTTP Link header `rel="alternate" type="application/cbor"` | Découverte pendant navigation HTML |
-| `robots.txt` directive `CBOR-Web: /index.cbor` | Compatible crawlers existants |
+| Method | Use |
+|---|---|
+| DNS TXT `_cbor-web.example.com` | Discovery at scale without an HTTP request |
+| HTTP `Link: <…>; rel="alternate"; type="application/cbor"` | Discovery during HTML browsing |
+| `robots.txt` directive `CBOR-Web: /index.cbor` | Compatible with existing crawlers |
 
 ---
 
-## 3. Structure de `index.cbor`
+## 3. Structure of `index.cbor`
 
 ```cbor-diag
 55799({
   0: "cbor-web",
   1: 3,
-  2: {
-    "domain": "fleurs.com",
-    "name": "Fleurs.com — Livraison de fleurs",
-    "description": "Boutique en ligne de fleurs fraiches, livraison en 24h",
-    "languages": ["fr", "en"],
-    "default_language": "fr",
-    "contact": {"email": "contact@fleurs.com", "phone": "+33145678900"},
-    "geo": {"country": "FR", "region": "Ile-de-France"}
+  2: {                                  / site metadata /
+    "domain": "example.com",
+    "name": "Example",
+    "description": "…",
+    "languages": ["en", "fr"],
+    "default_language": "en",
+    "contact": {"email": "…", "phone": "…"},
+    "geo": {"country": "US", "region": "California"}
   },
-  3: {
-    "auth": {
-      "mechanisms": ["erc20", "apikey", "oauth2_m2m"],
-      "erc20": {"chain": "ethereum", "contract_address": "0x..."},
-      "apikey": {"registration_url": "https://fleurs.com/api/register"},
-      "public_key": h'MCowBQYDK2VwAyEA...'
-    },
+  3: {                                  / security (optional) /
     "default_access": "T2",
-    "rate_limit": {"T1": 50, "T2": 10}
+    "public_key": h'MCowBQYDK2VwAyEA…'
   },
-  4: {
-    "main": ["/", "/catalogue", "/roses", "/livraison", "/contact"],
-    "footer": ["/cgv", "/mentions-legales"],
-    "hierarchy": {
-      "/catalogue": ["/roses", "/tulipes", "/orchidees"],
-      "/roses": ["/roses/rouge", "/roses/blanche"]
-    }
+  4: {                                  / navigation (optional) /
+    "main": ["/", "/catalogue", "/about"],
+    "footer": ["/legal", "/contact"]
   },
-  5: [
+  5: [                                  / pages /
     {
       "path": "/",
-      "title": "Accueil — Fleurs.com",
-      "lang": "fr",
+      "title": "Welcome",
+      "lang": "en",
       "access": "T2",
-      "updated": 1(1742515200),
-      "hash": h'D8CAD2E6...',
+      "updated": 1(1748000000),
       "content": [
-        {"l": 1, "t": "h", "v": "Bienvenue chez Fleurs.com"},
-        {"t": "p", "v": "Livraison de fleurs fraiches partout en France en 24h."},
-        {"l": 2, "t": "h", "v": "Nos best-sellers"},
-        {"t": "ul", "v": ["Roses rouges — 29.90 EUR", "Bouquet du jour — 34.90 EUR", "Orchidee — 39.90 EUR"]},
-        {"t": "cta", "href": "/catalogue", "v": "Voir le catalogue"}
-      ]
-    },
-    {
-      "path": "/roses",
-      "title": "Roses — Fleurs.com",
-      "lang": "fr",
-      "access": "T2",
-      "updated": 1(1742428800),
-      "hash": h'9FC41CE5...',
-      "content": [
-        {"l": 1, "t": "h", "v": "Nos Roses"},
-        {"t": "p", "v": "Cultivees en France, cueillies le matin, livrees le lendemain."},
-        {"t": "table", "headers": ["Variete", "Prix", "Dispo"], "rows": [
-          ["Rose rouge classique", "2.90 EUR", "En stock"],
-          ["Rose blanche", "3.50 EUR", "En stock"],
-          ["Rose arc-en-ciel", "4.90 EUR", "Sur commande"]
-        ]}
-      ],
-      "priority": 0.9,
-      "freshness": "daily",
-      "boost": {"until": 1(1742860800), "label": "Promo printemps"},
-      "structured_data": {
-        "type": "Product",
-        "name": "Roses",
-        "brand": {"type": "Organization", "name": "Fleurs.com"},
-        "offers": {"type": "AggregateOffer", "lowPrice": 2.90, "highPrice": 4.90, "priceCurrency": "EUR"}
-      }
-    },
-    {
-      "path": "/livraison/tarifs",
-      "title": "Tarifs de livraison",
-      "lang": "fr",
-      "access": "T1",
-      "updated": 1(1742428800),
-      "hash": h'A1B2C3D4...',
-      "content": [
-        {"l": 1, "t": "h", "v": "Tarifs de livraison"},
-        {"t": "table", "headers": ["Zone", "Delai", "Prix"], "rows": [
-          ["Ile-de-France", "24h", "5.90 EUR"],
-          ["Province", "48h", "8.90 EUR"],
-          ["Europe", "3-5j", "14.90 EUR"]
-        ]}
+        {"t": "h", "l": 1, "v": "Welcome"},
+        {"t": "p", "v": "…"}
       ]
     }
   ],
-  6: {
-    "generated_at": 1(1742515200),
-    "generator": "text2cbor/1.0.0",
-    "total_pages": 3,
-    "total_size": 2048,
-    "signature": h'...'
+  6: {                                  / meta /
+    "generated_at": 1(1748000000),
+    "generator": "cbor-web-gen/0.1",
+    "total_pages": 1,
+    "signature": h'…'                   / optional /
   }
 })
 ```
 
-### 3.1 Clés de premier niveau
+### 3.1 Top-level keys
 
-| Clé | Nom | Type | Requis | Description |
-|-----|-----|------|--------|-------------|
-| 0 | @type | text | OUI | `"cbor-web"` |
-| 1 | @version | uint | OUI | `3` pour cette version |
-| 2 | site | map | OUI | Identité du site (domaine, nom, langues, contact, geo) |
-| 3 | security | map | OUI | Auth, tiers d'accès, clé publique, rate limits |
-| 4 | navigation | map | RECO | Menus, hiérarchie, breadcrumbs |
-| 5 | pages | array | OUI | Toutes les pages avec leur contenu |
-| 6 | meta | map | OUI | Timestamp, générateur, signature |
+| Key | Name | Type | Required | Description |
+|---|---|---|---|---|
+| 0 | type | text | YES | `"cbor-web"` |
+| 1 | version | uint | YES | `3` for this version |
+| 2 | site | map | YES | Domain, name, languages, contact, geo |
+| 3 | security | map | NO | Default access tier and public key |
+| 4 | navigation | map | NO | Menus and hierarchy |
+| 5 | pages | array | YES | Pages with their content |
+| 6 | meta | map | NO | Generation timestamp, generator, optional signature |
 
-Un agent DOIT ignorer les clés qu'il ne reconnaît pas (compatibilité ascendante).
+Agents MUST ignore unknown keys (forward compatibility).
 
-### 3.2 Structure d'une page (éléments de clé 5)
+### 3.2 Page structure (key 5 elements)
 
-| Champ | Type | Requis | Description |
-|-------|------|--------|-------------|
-| `"path"` | text | OUI | Chemin URL (`"/"`, `"/roses"`) |
-| `"title"` | text | OUI | Titre de la page |
-| `"lang"` | text | OUI | Code langue BCP 47 |
-| `"access"` | text | OUI | `"T0"`, `"T1"`, ou `"T2"` |
-| `"content"` | array | OUI | Blocs de contenu (h, p, ul, table, etc.) |
-| `"hash"` | bstr 32 | RECO | SHA-256 du contenu sérialisé |
-| `"updated"` | tag 1 | RECO | Timestamp dernière modification |
-| `"alternates"` | map | OPT | Versions linguistiques `{"en": "/en/roses"}` |
-| `"structured_data"` | map | OPT | Schema.org natif CBOR |
-| `"links"` | map | OPT | Liens internes/externes |
-| `"priority"` | float16 | OPT | Priorité de crawl 0.0-1.0 (défaut 0.5). Respectée par les crawlers CBOR-Web |
-| `"freshness"` | text | OPT | Fréquence de recrawl souhaitée : `"realtime"`, `"hourly"`, `"daily"`, `"weekly"`, `"monthly"` |
-| `"boost"` | map | OPT | Mise en avant temporaire (voir §9.5) |
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `path` | text | YES | URL path (`"/"`, `"/catalogue/item"`) |
+| `title` | text | YES | Page title |
+| `lang` | text | YES | BCP 47 language tag |
+| `access` | text | YES | `"T0"`, `"T1"`, or `"T2"` (see §4) |
+| `content` | array | YES | Ordered array of content blocks (§5) |
+| `description` | text | NO | Short description |
+| `updated` | tag 1 | NO | Last-modified timestamp (epoch seconds) |
+| `hash` | bstr | NO | SHA-256 of serialised content (32 bytes) |
+| `alternates` | map | NO | Language alternates `{"fr": "/fr/page"}` |
+| `structured_data` | map | NO | Schema.org typed object |
 
 ---
 
-## 4. Niveaux d'accès
+## 4. Access tiers
 
-| Tier | Nom | Qui | Auth requise |
-|------|-----|-----|-------------|
-| **T0** | Institutionnel | Gouvernements, identité vérifiée | eIDAS 2.0 / X.509 EV |
-| **T1** | Authentifié | Agents avec token ou API key | ERC-20 / API key / OAuth M2M |
-| **T2** | Ouvert | Tout le monde | Aucune |
-| **Interdit** | — | Contenu prohibé (violence, exploitation) | Bloqué par le protocole |
+A page declares an access tier. The read protocol defines three values:
 
-Quand un agent demande `index.cbor` :
-- Les pages `"access": "T2"` sont visibles en clair
-- Les pages `"access": "T1"` ont leur `"content"` chiffré ou absent — l'agent voit le `"path"` et le `"title"` mais pas le contenu
-- Les pages `"access": "T0"` idem, contenu masqué
+| Tier | Meaning | Authentication |
+|---|---|---|
+| `T2` | Open access (default) | None |
+| `T1` | Authenticated access | Implementation-defined |
+| `T0` | Restricted access | Implementation-defined |
 
-Après authentification, l'agent reçoit une version complète de `index.cbor` avec tous les contenus déverrouillés.
+For `T1` and `T0` pages, the publisher MAY omit the `content` array or replace
+it with an opaque byte string. Authentication mechanisms are intentionally
+**out of scope** for the read protocol — see
+[CBOR-WEB-MONETIZATION.md](CBOR-WEB-MONETIZATION.md) for one possible
+authentication and monetisation model.
 
----
-
-## 5. Identité par DNS
-
-Le publisher prouve son identité en ajoutant un record DNS TXT :
-
-```
-_cbor-web.fleurs.com. 3600 IN TXT "v=3; pk=MCowBQYDK2VwAyEA..."
-```
-
-| Champ | Description |
-|-------|-------------|
-| `v` | Version du protocole |
-| `pk` | Clé publique base64url (Ed25519 ou P-256) |
-
-Le publisher signe `index.cbor` avec sa clé privée (clé 6 `"signature"`). N'importe qui vérifie en comparant avec la clé DNS.
-
-**Aucune inscription nécessaire.** Le DNS est l'identité.
+The default tier for any page that does not declare `access` is `T2`.
 
 ---
 
-## 6. Blocs de contenu
+## 5. Content blocks
 
-Les mêmes 13 blocs que v2.1. Chaque bloc est un map CBOR avec `"t"` (type) obligatoire.
+Each block is a CBOR map. The `t` (type) field is required.
 
-### Blocs éditoriaux (signal pur)
+### 5.1 Editorial blocks
 
-| Code | Type | Clés | Exemple |
-|------|------|------|---------|
-| `"h"` | Heading | `"l"` (1-6), `"v"` | `{"l": 1, "t": "h", "v": "Titre"}` |
-| `"p"` | Paragraphe | `"v"` | `{"t": "p", "v": "Texte..."}` |
-| `"ul"` | Liste | `"v"` (array) | `{"t": "ul", "v": ["A", "B"]}` |
-| `"ol"` | Liste ordonnée | `"v"` (array) | `{"t": "ol", "v": ["1er", "2eme"]}` |
-| `"q"` | Citation | `"v"`, `"attr"` | `{"t": "q", "v": "...", "attr": "Source"}` |
-| `"code"` | Code | `"v"`, `"lang"` | `{"t": "code", "v": "print('hi')", "lang": "python"}` |
-| `"table"` | Tableau | `"headers"`, `"rows"` | Voir exemples §3 |
-| `"dl"` | Définitions | `"v"` (array de maps) | `{"t": "dl", "v": [{"term": "...", "def": "..."}]}` |
-| `"note"` | Note | `"v"`, `"level"` | `{"t": "note", "v": "Attention...", "level": "warn"}` |
-| `"sep"` | Séparateur | — | `{"t": "sep"}` |
+| `t` | Type | Keys | Example |
+|---|---|---|---|
+| `h` | Heading | `l` (1-6), `v` | `{"l": 1, "t": "h", "v": "Title"}` |
+| `p` | Paragraph | `v` | `{"t": "p", "v": "…"}` |
+| `ul` | Bullet list | `v` (array) | `{"t": "ul", "v": ["A", "B"]}` |
+| `ol` | Numbered list | `v` (array) | `{"t": "ol", "v": ["1", "2"]}` |
+| `q` | Quote | `v`, `attr` | `{"t": "q", "v": "…", "attr": "Source"}` |
+| `code` | Code block | `v`, `lang` | `{"t": "code", "v": "…", "lang": "rust"}` |
+| `table` | Data table | `headers`, `rows` | `{"t": "table", "headers": ["A"], "rows": [["1"]]}` |
+| `dl` | Definitions | `v` (array of `{term, def}` maps) | … |
+| `note` | Note | `v`, `level` | `{"t": "note", "v": "…", "level": "warn"}` |
+| `sep` | Separator | — | `{"t": "sep"}` |
 
-### Blocs non-éditoriaux
+### 5.2 Action and media blocks
 
-| Code | Type | Clés |
-|------|------|------|
-| `"cta"` | Call to action | `"v"`, `"href"` |
-| `"img"` | Image | `"alt"`, `"src"`, `"caption"` |
-| `"embed"` | Contenu embarqué | `"src"`, `"description"` |
+| `t` | Type | Keys |
+|---|---|---|
+| `cta` | Call to action | `v`, `href` |
+| `img` | Image | `src`, `alt`, optional `caption` |
+| `embed` | Embedded content | `src`, `description` |
 
-### Blocs multimédia (CBOR-WEB-MULTIMEDIA.md)
-
-`"image"`, `"video"`, `"audio"`, `"document"`, `"diagram"`, `"live_stream"`
-
-### Blocs générateurs (CBOR-WEB-GENERATIVE.md)
-
-`"schema"`, `"constraint"`, `"template"`, `"executable"`, `"api_endpoint"`, `"workflow"`, `"form"`, `"product"`, `"cart_action"`
-
-Clés de blocs en **ordre déterministe** (§ encoding) : `"l"` < `"t"` < `"v"` (longueur encodée puis bytewise).
+An agent encountering an unknown `t` value MUST skip the block silently. This
+permits forward-compatible extensions.
 
 ---
 
-## 7. Encodage CBOR
+## 6. Encoding rules
 
-### 7.1 Règles obligatoires
+### 6.1 Required
 
-| Règle | Exigence |
-|-------|----------|
-| Encodage déterministe | RFC 8949 §4.2 — clés triées, entiers minimaux |
-| Tag self-described | `D9 D9 F7` (tag 55799) en tête du fichier |
-| Texte UTF-8 | Major type 3 pour tout le texte. NFC, LF, whitespace trimmé |
-| Hashes en bytes | SHA-256 = byte string 32 octets (major type 2) |
-| Timestamps | Tag 1 + integer (epoch Unix, secondes) |
-| Longueurs définies | Pas de arrays/maps indefinite-length |
-| Clés triées | Plus court d'abord, puis bytewise |
-| Compatibilité | Ignorer les clés inconnues (pas d'erreur) |
+| Rule | Requirement |
+|---|---|
+| Deterministic encoding | RFC 8949 §4.2 — sorted keys, minimal integers |
+| Self-described tag | `D9 D9 F7` (tag 55799) at the start of the file |
+| Text encoding | UTF-8 (CBOR major type 3), NFC normalised, LF line breaks |
+| Hashes | SHA-256 as 32-byte byte string (CBOR major type 2) |
+| Timestamps | Tag 1 + integer (epoch seconds, UTC) |
+| Definite lengths | No indefinite-length arrays or maps |
+| Map key order | Shorter encoded keys first, then bytewise |
+| Forward compatibility | Unknown keys MUST be ignored, not rejected |
 
-### 7.2 Limite de taille
+### 6.2 Size limits
 
-| Fichier | Max |
-|---------|-----|
-| `index.cbor` (< 500 pages) | 5 MB |
-| `index.cbor` (500+ pages) | Paginé (§8) |
-| Contenu d'une page | 1 MB de contenu |
+| File | Max |
+|---|---|
+| `index.cbor` (≤500 pages) | 5 MB |
+| `index.cbor` (>500 pages) | Paginated (§7) |
+| Per-page content | 1 MB |
 
 ---
 
-## 8. Grands sites (500+ pages)
+## 7. Large sites (>500 pages)
 
-Pour les sites dépassant 500 pages, `index.cbor` contient le manifest + les 500 premières pages, avec un lien vers la suite :
+For sites exceeding 500 pages, `index.cbor` contains the manifest plus the
+first 500 pages and a `"next"` pointer in the meta map:
 
 ```cbor-diag
 6: {
-  "generated_at": 1(1742515200),
+  "generated_at": 1(1748000000),
   "total_pages": 12000,
   "next": "/cbor-web/pages-501-1000.cbor"
 }
 ```
 
-L'agent suit `"next"` pour charger les pages suivantes. Le premier `index.cbor` contient toujours le site metadata (clé 2), la navigation (clé 4), et la sécurité (clé 3).
+The agent follows `next` to load subsequent batches. The first file always
+holds site metadata (key 2), navigation (key 4), and security (key 3).
 
 ---
 
-## 9. Service de génération (cbor-web.com)
+## 8. Identity and signature
 
-Le publisher ne crée pas `index.cbor` à la main. Il utilise le **service CBOR-Web** hébergé sur `cbor-web.com`.
-
-### 9.1 Flux complet
+A publisher MAY prove ownership by publishing a DNS TXT record:
 
 ```
-1. Publisher crée un compte sur cbor-web.com → reçoit un token API (valide 365 jours max)
-2. Publisher ajoute DNS TXT : _cbor-web.fleurs.com → clé publique
-3. Publisher appelle l'API : "génère mon index.cbor"
-   - Déclare les niveaux : T1 pour /tarifs, T2 pour le reste
-   - Exclut les chemins sensibles : /admin, /backoffice
-4. L'API génère index.cbor (crawl du site + conversion + signature)
-5. Une fenêtre de téléchargement s'ouvre pour 48-72h
-6. Le publisher récupère index.cbor pendant cette fenêtre
-7. Le publisher pose le fichier à la racine de son site
-8. La fenêtre se ferme automatiquement après 72h
-9. Pour re-générer : le publisher réactive le même token → nouvelle fenêtre 48-72h
-10. Au bout de 365 jours : le token expire, le publisher en crée un nouveau
+_cbor-web.example.com. 3600 IN TXT "v=3; pk=MCowBQYDK2VwAyEA…"
 ```
 
-### 9.2 Token publisher
+| Field | Description |
+|---|---|
+| `v` | Protocol version |
+| `pk` | Public key in base64url (Ed25519 or P-256) |
 
-| Propriété | Valeur |
-|-----------|--------|
-| Durée de vie max | **365 jours** |
-| Renouvellement | Nouveau token à l'expiration |
-| Fenêtre de téléchargement | **48-72h** après chaque génération |
-| Réactivation | Le même token rouvre une fenêtre (tant qu'il est valide) |
-| Révocation | Le publisher peut révoquer à tout moment |
+If a public key is published, the publisher SHOULD sign `index.cbor` with the
+matching private key and place the signature in `6.signature`. Verifiers MAY
+compare the signed bytes against the DNS public key to authenticate the
+document.
 
-Le token publisher est **distinct** du token CBORW (ERC-20). Le token publisher est une API key classique pour accéder au service de génération. Le token CBORW est le badge d'accès T1 pour les agents IA.
-
-### 9.3 API
-
-**Étape 1 — Créer un compte et obtenir un token :**
-
-```
-POST https://api.cbor-web.com/register
-Content-Type: application/json
-
-{
-  "domain": "fleurs.com",
-  "email": "contact@fleurs.com"
-}
-```
-
-Réponse :
-```json
-{
-  "token": "cbw_pub_a3f2c442...",
-  "expires_at": "2027-03-24T00:00:00Z",
-  "dns_instructions": {
-    "record": "_cbor-web.fleurs.com",
-    "type": "TXT",
-    "value": "v=3; pk=MCowBQYDK2VwAyEA..."
-  }
-}
-```
-
-**Étape 2 — Configurer et générer :**
-
-```
-POST https://api.cbor-web.com/generate
-Authorization: Bearer cbw_pub_a3f2c442...
-Content-Type: application/json
-
-{
-  "domain": "fleurs.com",
-  "default_access": "T2",
-  "pages": [
-    {"path": "/", "access": "T2"},
-    {"path": "/catalogue", "access": "T2"},
-    {"path": "/roses", "access": "T2", "priority": 0.9, "freshness": "daily", "boost": {"until": "2026-04-30", "label": "Promo printemps"}},
-    {"path": "/livraison/tarifs", "access": "T1"}
-  ],
-  "exclude": [
-    "/admin",
-    "/admin/*",
-    "/backoffice",
-    "/api/*"
-  ]
-}
-```
-
-Réponse :
-```json
-{
-  "status": "generating",
-  "job_id": "job_7f3a...",
-  "estimated_time_seconds": 120,
-  "download_url": "https://api.cbor-web.com/download/job_7f3a...",
-  "download_expires_at": "2026-03-27T05:00:00Z"
-}
-```
-
-**Étape 3 — Télécharger (dans la fenêtre 48-72h) :**
-
-```
-GET https://api.cbor-web.com/download/job_7f3a...
-Authorization: Bearer cbw_pub_a3f2c442...
-```
-
-Réponse : le fichier `index.cbor` binaire (`Content-Type: application/cbor`).
-
-**Après 72h :** le `download_url` retourne `410 Gone`.
-
-**Réactiver :**
-
-```
-POST https://api.cbor-web.com/regenerate
-Authorization: Bearer cbw_pub_a3f2c442...
-
-{
-  "domain": "fleurs.com"
-}
-```
-
-Réutilise la dernière configuration. Ouvre une nouvelle fenêtre 48-72h.
-
-### 9.4 MCP
-
-Le publisher peut aussi utiliser le connecteur MCP CBOR-Web depuis Claude, ChatGPT, ou tout agent compatible :
-
-```
-"Génère le index.cbor pour fleurs.com avec les pages catalogue et roses en T2,
- les tarifs en T1, exclure /admin et /backoffice"
-```
-
-Le MCP appelle la même API sous le capot.
-
-### 9.5 Options de visibilité marchand
-
-CBOR-Web offre aux publishers un contrôle direct sur la visibilité de leurs pages auprès des agents IA. Contrairement à `sitemap.xml` où `<priority>` est ignoré par les moteurs de recherche, les crawlers CBOR-Web **respectent** ces signaux.
-
-#### Champs par page
-
-| Champ | Gratuit (T2) | Publisher (token) | Effet |
-|-------|-------------|-------------------|-------|
-| `"priority"` | 0.5 (défaut) | 0.0 à 1.0 au choix | Ordre de traitement par le crawler. Les pages `priority: 0.9` sont crawlées et indexées en premier |
-| `"freshness"` | `"monthly"` (défaut) | `"realtime"` à `"monthly"` | Fréquence de recrawl. `"realtime"` = le crawler revérifie cette page à chaque passe |
-| `"boost"` | non disponible | `{"until": timestamp, "label": "..."}` | Mise en avant temporaire. Le crawler traite cette page comme prioritaire jusqu'à la date `"until"` |
-
-#### Comportement du crawler
-
-1. **Tri par priorité** — lors du crawl d'un `index.cbor`, le crawler traite les pages par `"priority"` décroissante
-2. **Respect du freshness** — une page `"freshness": "hourly"` sera revérifiée (hash comparé) toutes les heures
-3. **Boost temporaire** — pendant la durée du boost, la page est traitée comme `"priority": 1.0` quel que soit son `"priority"` déclaré
-4. **Expiration** — un boost expiré (`"until"` dans le passé) est ignoré silencieusement
-
-#### Pourquoi les agents IA respectent ces signaux
-
-Un `sitemap.xml` est un fichier texte passif. Un `index.cbor` est un contrat binaire signé. Le publisher a payé pour un token, vérifié son identité par DNS, et signé son fichier. Les crawlers CBOR-Web récompensent cet investissement en respectant les signaux de visibilité — c'est l'incitation à l'adoption.
+DNS-based identity is optional. A site without DNS TXT or signature is still
+a valid CBOR-Web document — it simply offers no authentication guarantees.
 
 ---
 
-## 10. Vérification
+## 9. Verification
 
-Un robot CBOR-Web (`cbor-verify`) crawle les sites déclarés :
+A CBOR-Web verifier crawls declared sites and checks:
 
-1. Scan DNS pour les records `_cbor-web.*`
-2. Fetch `index.cbor` sur chaque domaine trouvé
-3. Vérifie : tag 55799, signature vs clé DNS, hashes, encodage déterministe
-4. Si conforme → site indexé dans le réseau CBOR-Web
-5. Si non conforme → notification au publisher via email/webhook
+1. The first three bytes equal `D9 D9 F7`
+2. The CBOR document decodes without error
+3. Required keys (0, 1, 2, 5) are present
+4. Encoding is deterministic per RFC 8949 §4.2
+5. If a signature is present, it verifies against the DNS TXT public key
+6. Each page declares `path`, `title`, `lang`, `content`
 
----
-
-## 11. Positionnement
-
-| Standard | Format | Contenu | CBOR-Web |
-|----------|--------|---------|----------|
-| `robots.txt` | Texte | Règles crawl | Complémentaire |
-| `sitemap.xml` | XML | Liste URLs | Remplacé par `index.cbor` |
-| `llms.txt` | Markdown | Résumé texte | Complémentaire (résumé vs contenu complet) |
-| `index.html` | HTML | Page d'accueil humains | Parallèle — `index.cbor` pour machines |
-| **`index.cbor`** | **CBOR binaire** | **Site entier structuré** | **C'est nous** |
+A reference Rust implementation lives in [`tools/`](tools/) of this
+repository.
 
 ---
 
-## 12. Économie
+## 10. Positioning
 
-Le protocole est gratuit (CC BY-ND 4.0). La monétisation repose sur les **services à valeur ajoutée**, pas sur le standard lui-même.
-
-### 12.1 Modèle à deux niveaux
-
-| Niveau | Coût | Ce que le publisher obtient |
-|--------|------|---------------------------|
-| **Gratuit** | 0 | `index.cbor` généré avec `priority: 0.5`, `freshness: "monthly"`, pas de boost. Indexation standard |
-| **Publisher** (token annuel) | Payant | `priority` configurable (0.0-1.0), `freshness` jusqu'à `"realtime"`, `boost` temporaire, recrawl prioritaire |
-
-### 12.2 Sources de revenus
-
-| Source | Description |
-|--------|-------------|
-| Token publisher (API key) | Abonnement annuel pour le service de génération + options de visibilité |
-| Token CBORW (ERC-20) | Badge d'accès T1 permanent pour les agents IA consommant du contenu premium |
-| Boost temporaire | Option ponctuelle : mise en avant d'une page (promo, lancement, saison) |
-| Génération à la demande | Régénérations supplémentaires au-delà du quota gratuit |
-
-### 12.3 Analogie
-
-```
-Google :  indexation gratuite  +  Google Ads (payant pour être vu en premier)
-CBOR-Web: index.cbor gratuit   +  Visibility options (payant pour être crawlé en priorité par les IA)
-```
-
-La différence fondamentale : CBOR-Web ne vend pas de la publicité, il vend de la **lisibilité machine**. Le publisher ne paie pas pour apparaître devant un humain — il paie pour que les agents IA trouvent, comprennent et recommandent son contenu en priorité.
-
-Voir CBOR-WEB-ECONOMICS.md pour le modèle complet.
+| Standard | Role | Relationship |
+|---|---|---|
+| `index.html` | Home page for humans | Parallel — `index.cbor` is the machine equivalent |
+| `sitemap.xml` | List of URLs | Superseded by `index.cbor`'s pages array |
+| `robots.txt` | Crawl rules | Complementary |
+| `llms.txt` | Markdown summary for LLMs | Complementary — `llms.txt` is a curated digest, `index.cbor` is the full structured content |
+| **`index.cbor`** | **Full site as binary structured content** | **This document** |
 
 ---
 
-## Références
+## 11. References
 
 - **[RFC 8949]** CBOR — Concise Binary Object Representation
 - **[RFC 8610]** CDDL — Concise Data Definition Language
 - **[RFC 9052]** COSE — CBOR Object Signing and Encryption
 - **[RFC 8615]** Well-Known URIs
-- **[EU 2024/1183]** eIDAS 2.0 — European Digital Identity Framework
-- **[EIP-20]** ERC-20 Token Standard
-- **[EIP-712]** Typed structured data hashing and signing
 
 ---
 
-*CBOR-Web Specification v3.0 — "index.cbor — le site entier en un fichier"*
+## Authors and acknowledgements
 
-*ExploDev 2026*
+Authored by Eddie Plot (2026). The early drafts were developed in dialogue
+with the Claude assistant from Anthropic, which contributed to the
+formalisation of the structure and the encoding rules.
+
+Implementations, services and ecosystem tooling are tracked in
+[`CBOR-WEB-MONETIZATION.md`](CBOR-WEB-MONETIZATION.md) (optional commercial
+extensions) and in the `Related projects` section of the [README](README.md).
+
+## License
+
+This specification is released into the **public domain** under
+[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+You may read, implement, copy, modify, distribute, and build commercial
+services on top of it without permission or attribution.
+
+The reading protocol belongs to everyone.

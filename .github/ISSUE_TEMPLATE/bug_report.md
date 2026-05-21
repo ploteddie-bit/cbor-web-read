@@ -1,37 +1,32 @@
 ---
 name: Bug Report
-about: Create a report to help us improve
+about: A parser, validator, or example behaves incorrectly
 title: '[BUG] '
 labels: bug
 assignees: ''
-
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear description of what's wrong.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Fetch CBOR from '...'
-2. Parse with '...'
+**To reproduce**
+1. ...
+2. ...
 3. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Expected behaviour**
+What you expected to happen.
 
-**CBOR File**
-- Domain: [e.g., example.com/index.cbor]
-- File size: [e.g., 45KB]
-- Attach or link to the CBOR file if possible
+**The file**
+- Domain (or local path): `example.com/index.cbor` / `examples/foo.cbor`
+- File size: e.g. 45 KB
+- Output of `cbor-web-validate <file>` (paste here)
+- Attach or link to the file if possible
 
-**Environment:**
-- Parser library: [e.g., cbor2, serde_cbor, go-cbor]
-- Version: [e.g., 5.4.3]
-- Language: [e.g., Python 3.11, Rust 1.70]
-- OS: [e.g., Ubuntu 22.04, macOS 13]
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Environment**
+- Tool or library: e.g. `cbor-web-validate`, `ciborium 0.2`, `fxamacker/cbor v2.5`, `libcbor`
+- Language and version: e.g. Rust 1.78, Go 1.22
+- OS: e.g. Ubuntu 24.04, macOS 14
 
 **Additional context**
-Add any other context about the problem here (logs, error messages, etc.).
+Logs, stack traces, anything else that helps reproduce.

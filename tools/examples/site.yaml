@@ -1,0 +1,52 @@
+# Source format for cbor-web-gen. Run:
+#
+#   cbor-web-gen tools/examples/site.yaml -o /tmp/site.cbor
+#
+# The generator fills in security.default_access (T2), navigation.main, and
+# meta.total_pages. You can override them by setting them explicitly here.
+
+site:
+  domain: example.com
+  name: Example Site
+  description: A minimal CBOR-Web example demonstrating every block type
+  languages: [en]
+  default_language: en
+  contact:
+    email: contact@example.com
+  geo:
+    country: US
+    region: California
+
+pages:
+  - path: /
+    title: Welcome
+    lang: en
+    access: T2
+    content:
+      - {t: h, l: 1, v: Welcome to Example.com}
+      - {t: p, v: A short paragraph introducing the site.}
+      - {t: ul, v: [Fast, Light, Open]}
+      - {t: cta, v: Browse the catalogue, href: /catalogue}
+
+  - path: /catalogue
+    title: Catalogue
+    lang: en
+    access: T2
+    content:
+      - {t: h, l: 1, v: Catalogue}
+      - {t: p, v: All the things we sell.}
+      - t: table
+        headers: [Item, Price]
+        rows:
+          - [Item A, "$10"]
+          - [Item B, "$20"]
+      - {t: q, v: "Quality first.", attr: Our motto}
+
+  - path: /about
+    title: About
+    lang: en
+    access: T2
+    content:
+      - {t: h, l: 1, v: About}
+      - {t: p, v: We make things.}
+      - {t: img, src: /img/team.jpg, alt: Our team in the office}

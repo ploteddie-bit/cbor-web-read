@@ -1,373 +1,272 @@
 # CBOR-Web — The Story
 
-> Select your language / Choisissez votre langue / Seleccione su idioma
+The history behind the protocol, in three languages: [English](#english) ·
+[Français](#francais) · [Español](#espanol).
 
-[English](#english) · [Francais](#francais) · [Espanol](#espanol) · [中文](#中文) · [العربية](#العربية) · [हिन्दी](#हिन्दी) · [Portugues](#portugues) · [Русский](#русский) · [日本語](#日本語) · [Deutsch](#deutsch) · [한국어](#한국어) · [Bahasa Indonesia](#bahasa-indonesia)
+For the technical specification, see
+[CBOR-WEB-SPEC-v3.0.md](CBOR-WEB-SPEC-v3.0.md).
 
 ---
 
 <a id="english"></a>
-## 🇬🇧 English
+## English
 
 ### Chapter 1 — Two researchers, one idea (2013)
 
-In 2013, two researchers — Carsten Bormann from the University of Bremen and Paul Hoffman from ICANN — faced a concrete problem: connected objects (IoT sensors, smart cards, industrial controllers) needed to exchange structured data, but JSON was too heavy. Too verbose. Too slow to parse on a processor with 8 KB of memory.
+In 2013, Carsten Bormann (University of Bremen) and Paul Hoffman (ICANN)
+faced a concrete problem: connected objects — IoT sensors, smart cards,
+industrial controllers — needed to exchange structured data, but JSON was
+too heavy. Too verbose. Too slow to parse on a processor with 8 KB of
+memory.
 
-They invented **CBOR** — Concise Binary Object Representation. The same data model as JSON, but encoded in binary. Compact, fast, extensible. Published as RFC 7049 by the IETF in October 2013.
+They invented **CBOR** (Concise Binary Object Representation): the same data
+model as JSON, but encoded in binary. Compact, fast, extensible. Published
+as RFC 7049 by the IETF in October 2013.
 
-CBOR wasn't designed for the web. It was designed for constrained machines. Thermometers, door locks, electricity meters. Things that count every byte.
+CBOR was not designed for the web. It was designed for constrained machines.
+Thermometers, door locks, electricity meters. Things that count every byte.
 
 ### Chapter 2 — Maturity and standardisation (2020)
 
-Seven years later, CBOR had proven itself. Adopted by CoAP (the HTTP of IoT), integrated into WebAuthn (FIDO2 authentication keys), used by COSE for cryptographic signatures. Millions of devices spoke CBOR without anyone noticing.
+Seven years later, CBOR had proven itself. Adopted by CoAP (the HTTP of
+IoT), integrated into WebAuthn (FIDO2 authentication keys), used by COSE for
+cryptographic signatures. Millions of devices spoke CBOR without anyone
+noticing.
 
-In December 2020, RFC 8949 replaced the original specification. Clarifications, corrections, deterministic encoding. CBOR became an Internet Standard — the highest level of validation at the IETF.
+In December 2020, [RFC 8949](https://www.rfc-editor.org/rfc/rfc8949.html)
+replaced the original specification. Clarifications, corrections,
+deterministic encoding. CBOR became an Internet Standard — the highest level
+of validation at the IETF.
 
-But the web continued to ignore it. Websites kept sending megabytes of HTML, CSS, and JavaScript to display a few paragraphs of text.
+But the web continued to ignore it. Sites kept sending megabytes of HTML,
+CSS, and JavaScript to display a few paragraphs of text.
 
-### Chapter 3 — The turning point: AI agents arrive (2024-2026)
+### Chapter 3 — AI agents arrive (2024–2026)
 
-Then everything changed. AI agents started browsing the web. Not with eyes and a mouse — with HTTP requests and parsers. And what they found was absurd:
+Then things shifted. Autonomous agents started browsing the web. Not with
+eyes and a mouse — with HTTP requests and parsers. What they found:
 
-- **2.86 MB** average per page in 2025 (HTTP Archive)
-- **86 requests** to display a single page
-- **95% noise** (CSS, JavaScript, tracking, ads) for **5% useful content**
+- ~2.86 MB average per page in 2025 ([HTTP Archive](https://almanac.httparchive.org/en/2025/page-weight))
+- ~86 requests to display a single page
+- A small fraction of that payload is useful content; the rest is styling,
+  scripts, analytics, and ads
 
-An AI agent that wants to read a restaurant menu must download 3 MB of React code, execute JavaScript, wait for 47 API calls, fight through cookie banners, and parse a DOM of 2,000 nodes. To find: address, phone number, opening hours, menu. 200 bytes of useful information buried under megabytes of decoration.
+An agent that wants to read a restaurant's address, phone number and opening
+hours must download megabytes of unrelated code, execute JavaScript, fight
+through cookie banners and parse a DOM with thousands of nodes. The signal-
+to-noise ratio is poor.
 
-### Chapter 4 — CBOR-Web: one file, the entire site (2026)
+### Chapter 4 — CBOR-Web (2026)
 
-The idea was obvious, yet no one had done it: **what if an entire website could be a single binary file at the root?**
+The idea: place a binary, machine-readable mirror of a site at the same
+address as `index.html`. Call it `index.cbor`. Humans read HTML, machines
+read CBOR.
 
-`index.cbor` — placed next to `index.html`. Same address, different format. The HTML for humans, the CBOR for machines.
+One file. One request. No JavaScript, no CSS, no DOM. Just structured
+content: headings, paragraphs, lists, tables, links, calls to action.
 
-One file. One request. Zero JavaScript. Zero CSS. Just structured content: headings, paragraphs, lists, tables, links, calls to action. Everything an AI agent needs, nothing it doesn't.
+A typical content-heavy page that ships as 1–3 MB of HTML can usually be
+expressed as 5–50 KB of CBOR-Web. The size gap is not magic — it is the
+difference between transmitting structured content (CBOR-Web) and
+transmitting a layout instruction set plus assets (HTML).
 
-A 160 KB Shopify page becomes 8 KB of CBOR. A complete 84-page site fits in 700 KB. Fifteen times lighter. One request instead of eighty-six.
-
-### Chapter 5 — The ecological imperative
-
-The numbers are staggering:
-
-- Data centres consumed **415 TWh** of electricity in 2024 — projected to reach **945 TWh** by 2030 (IEA, "Energy and AI", 2025)
-- The digital sector's energy consumption grows **9% per year**
-- An average website with 10,000 monthly visits emits **31.5 kg of CO2** per year
-- Web page weight has grown **+203%** since 2015
-
-Every unnecessary byte transferred is energy wasted. Every CSS animation that no machine will ever see is a server running, a cable carrying data, a router routing packets — for nothing.
-
-CBOR-Web doesn't just make the web faster for AI. It makes it **lighter for the planet**.
+### Chapter 5 — The ecological angle
 
 | | Traditional HTML | CBOR-Web |
 |---|---|---|
-| Average page weight | 2.86 MB | 5-50 KB |
-| Requests per page | 50-100 | 1 |
-| Useful content ratio | ~5% | 100% |
-| Energy per read | High | Minimal |
+| Page weight | 1–3 MB typical | 5–50 KB typical |
+| Requests | 50–100 | 1 |
+| Useful-content ratio | Low | High |
+| Energy per read | Higher | Lower |
 
-If every website offered an `index.cbor` alongside its `index.html`, the volume of data transferred by AI agents would drop by a factor of **10 to 50**. Not through compression. Through elimination of the unnecessary.
+Data centres consumed ~415 TWh of electricity in 2024
+([IEA, "Energy and AI", 2025](https://www.iea.org/reports/energy-and-ai)), with projections in the
+high hundreds of TWh by 2030. Less data transferred and less compute on
+both ends means less energy. The gain per request is small; multiplied by
+billions of agent requests per day, it becomes material.
 
 ### Chapter 6 — A standard that belongs to everyone
 
-The CBOR-Web read protocol is published under **CC0 — Public Domain**. No licence to pay, no permission to ask, no patent to fear. Anyone can read an `index.cbor`. The reading protocol belongs to humanity.
+CBOR-Web is published under **CC0 1.0** — public domain. No licence to pay,
+no permission to ask, no patent to fear. Reading an `index.cbor` is free.
+Anyone may fork, extend, or build commercial services on top of the spec.
 
-What creates value is not reading — it is **creating**. Transforming an HTML website into a clean, structured, optimised `index.cbor` requires intelligence, tools, and expertise. That is where the publishers come in. That is where the ecosystem grows.
-
-Like PDF: everyone can read. The tools that create are where the value lives.
+Like PDF: anyone can read. Anyone can write. The value lives in the tooling
+ecosystem, not in the gatekeeping of the format.
 
 ---
 
 <a id="francais"></a>
-## 🇫🇷 Francais
+## Français
 
-### Chapitre 1 — Deux chercheurs, une idee (2013)
+### Chapitre 1 — Deux chercheurs, une idée (2013)
 
-En 2013, deux chercheurs — Carsten Bormann de l'Universite de Breme et Paul Hoffman de l'ICANN — faisaient face a un probleme concret : les objets connectes (capteurs IoT, cartes a puce, controleurs industriels) devaient echanger des donnees structurees, mais le JSON etait trop lourd. Trop verbeux. Trop lent a analyser sur un processeur de 8 Ko de memoire.
+En 2013, Carsten Bormann (Université de Brême) et Paul Hoffman (ICANN)
+faisaient face à un problème concret : les objets connectés — capteurs IoT,
+cartes à puce, contrôleurs industriels — devaient échanger des données
+structurées, mais le JSON était trop lourd. Trop verbeux. Trop lent à
+analyser sur un processeur de 8 Ko de mémoire.
 
-Ils inventerent le **CBOR** — Concise Binary Object Representation. Le meme modele de donnees que JSON, mais encode en binaire. Compact, rapide, extensible. Publie en tant que RFC 7049 par l'IETF en octobre 2013.
+Ils inventent **CBOR** (Concise Binary Object Representation) : le même
+modèle de données que JSON, encodé en binaire. Compact, rapide, extensible.
+Publié en tant que RFC 7049 par l'IETF en octobre 2013.
 
-Le CBOR n'etait pas concu pour le web. Il etait concu pour les machines contraintes. Des thermometres, des serrures de porte, des compteurs electriques. Des choses qui comptent chaque octet.
+CBOR n'était pas conçu pour le web. Il était conçu pour les machines
+contraintes. Thermomètres, serrures, compteurs électriques. Des choses qui
+comptent chaque octet.
 
-### Chapitre 2 — Maturite et standardisation (2020)
+### Chapitre 2 — Maturité et standardisation (2020)
 
-Sept ans plus tard, le CBOR avait fait ses preuves. Adopte par CoAP (le HTTP de l'IoT), integre dans WebAuthn (les cles d'authentification FIDO2), utilise par COSE pour les signatures cryptographiques. Des millions d'appareils parlaient CBOR sans que personne ne le remarque.
+Sept ans plus tard, CBOR a fait ses preuves. Adopté par CoAP (le HTTP de
+l'IoT), intégré à WebAuthn (clés FIDO2), utilisé par COSE pour les
+signatures cryptographiques. Des millions d'appareils parlent CBOR sans que
+personne ne le remarque.
 
-En decembre 2020, la RFC 8949 remplacait la specification originale. Clarifications, corrections, encodage deterministe. Le CBOR devenait un Standard Internet — le plus haut niveau de validation a l'IETF.
+En décembre 2020, la RFC 8949 remplace la spécification originale.
+Clarifications, corrections, encodage déterministe. CBOR devient un Standard
+Internet — le plus haut niveau de validation à l'IETF.
 
-Mais le web continuait a l'ignorer. Les sites envoyaient toujours des megaoctets de HTML, CSS et JavaScript pour afficher quelques paragraphes de texte.
+Mais le web continue à l'ignorer. Les sites envoient toujours des
+mégaoctets de HTML, CSS et JavaScript pour afficher quelques paragraphes de
+texte.
 
-### Chapitre 3 — Le tournant : les agents IA arrivent (2024-2026)
+### Chapitre 3 — Les agents IA arrivent (2024–2026)
 
-Puis tout a change. Les agents IA se sont mis a parcourir le web. Pas avec des yeux et une souris — avec des requetes HTTP et des parseurs. Et ce qu'ils ont trouve etait absurde :
+Puis tout change. Les agents autonomes se mettent à parcourir le web. Pas
+avec des yeux et une souris — avec des requêtes HTTP et des parseurs. Ce
+qu'ils trouvent :
 
-- **2,86 Mo** en moyenne par page en 2025 (HTTP Archive)
-- **86 requetes** pour afficher une seule page
-- **95% de bruit** (CSS, JavaScript, tracking, pubs) pour **5% de contenu utile**
+- ~2,86 Mo en moyenne par page en 2025 (HTTP Archive)
+- ~86 requêtes pour afficher une seule page
+- Une petite fraction de cette charge utile est du contenu utile ; le reste,
+  c'est du style, des scripts, de l'analytics et de la publicité
 
-Un agent IA qui veut lire le menu d'un restaurant doit telecharger 3 Mo de code React, executer du JavaScript, attendre 47 appels API, combattre les bannieres de cookies, et analyser un DOM de 2 000 noeuds. Pour trouver : adresse, telephone, horaires, carte. 200 octets d'information utile enterres sous des megaoctets de decoration.
+Un agent qui veut lire l'adresse, le téléphone et les horaires d'un
+restaurant doit télécharger des mégaoctets de code sans rapport, exécuter du
+JavaScript, traverser des bannières de cookies et analyser un DOM de
+plusieurs milliers de nœuds. Le rapport signal sur bruit est faible.
 
-### Chapitre 4 — CBOR-Web : un fichier, tout le site (2026)
+### Chapitre 4 — CBOR-Web (2026)
 
-L'idee etait evidente, pourtant personne ne l'avait fait : **et si un site web entier tenait dans un seul fichier binaire a la racine ?**
+L'idée : placer un miroir binaire, lisible par les machines, à la même
+adresse qu'`index.html`. L'appeler `index.cbor`. Les humains lisent l'HTML,
+les machines lisent le CBOR.
 
-`index.cbor` — place a cote de `index.html`. Meme adresse, format different. Le HTML pour les humains, le CBOR pour les machines.
+Un fichier. Une requête. Pas de JavaScript, pas de CSS, pas de DOM. Juste
+du contenu structuré : titres, paragraphes, listes, tableaux, liens, appels
+à l'action.
 
-Un fichier. Une requete. Zero JavaScript. Zero CSS. Juste du contenu structure : titres, paragraphes, listes, tableaux, liens, boutons d'action. Tout ce dont un agent IA a besoin, rien de ce dont il n'a pas besoin.
+Une page typique qui pèse 1 à 3 Mo d'HTML peut généralement s'exprimer en 5
+à 50 Ko de CBOR-Web. L'écart de taille n'est pas magique — c'est la
+différence entre transmettre du contenu structuré (CBOR-Web) et transmettre
+un jeu d'instructions de mise en page plus des actifs (HTML).
 
-Une page Shopify de 160 Ko devient 8 Ko de CBOR. Un site complet de 84 pages tient dans 700 Ko. Quinze fois plus leger. Une requete au lieu de quatre-vingt-six.
-
-### Chapitre 5 — L'imperatif ecologique
-
-Les chiffres sont vertigineux :
-
-- Les centres de donnees ont consomme **415 TWh** d'electricite en 2024 — prevision de **945 TWh** d'ici 2030 (AIE, "Energy and AI", 2025)
-- La consommation energetique du numerique augmente de **9% par an**
-- Un site web moyen avec 10 000 visites mensuelles emet **31,5 kg de CO2** par an
-- Le poids des pages web a augmente de **+203%** depuis 2015
-
-Chaque octet inutile transfere est de l'energie gaspillee. Chaque animation CSS qu'aucune machine ne verra jamais est un serveur qui tourne, un cable qui transporte des donnees, un routeur qui achemine des paquets — pour rien.
-
-CBOR-Web ne rend pas seulement le web plus rapide pour l'IA. Il le rend **plus leger pour la planete**.
+### Chapitre 5 — L'angle écologique
 
 | | HTML traditionnel | CBOR-Web |
 |---|---|---|
-| Poids moyen par page | 2,86 Mo | 5-50 Ko |
-| Requetes par page | 50-100 | 1 |
-| Ratio contenu utile | ~5% | 100% |
-| Energie par lecture | Elevee | Minimale |
+| Poids par page | 1–3 Mo typique | 5–50 Ko typique |
+| Requêtes | 50–100 | 1 |
+| Ratio contenu utile | Faible | Élevé |
+| Énergie par lecture | Plus élevée | Plus faible |
 
-Si chaque site proposait un `index.cbor` a cote de son `index.html`, le volume de donnees transferees par les agents IA chuterait d'un facteur **10 a 50**. Pas par la compression. Par l'elimination de l'inutile.
+Les centres de données ont consommé ~415 TWh d'électricité en 2024 (AIE,
+« Energy and AI », 2025), avec des projections dans la centaine de TWh
+d'ici 2030. Moins de données transférées et moins de calcul aux deux
+extrémités, c'est moins d'énergie. Le gain par requête est faible ;
+multiplié par les milliards de requêtes d'agents quotidiennes, il devient
+significatif.
 
-### Chapitre 6 — Un standard qui appartient a tous
+### Chapitre 6 — Un standard qui appartient à tous
 
-Le protocole de lecture CBOR-Web est publie sous **CC0 — Domaine Public**. Pas de licence a payer, pas de permission a demander, pas de brevet a craindre. Tout le monde peut lire un `index.cbor`. Le protocole de lecture appartient a l'humanite.
+CBOR-Web est publié sous **CC0 1.0** — domaine public. Pas de licence à
+payer, pas de permission à demander, pas de brevet à craindre. Lire un
+`index.cbor` est libre. N'importe qui peut forker, étendre, ou construire
+des services commerciaux par-dessus la spec.
 
-Ce qui cree de la valeur, ce n'est pas la lecture — c'est la **creation**. Transformer un site HTML en un `index.cbor` propre, structure, optimise demande de l'intelligence, des outils, du savoir-faire. C'est la que les editeurs interviennent. C'est la que l'ecosysteme se construit.
-
-Comme le PDF : tout le monde peut lire. Les outils qui creent sont la ou vit la valeur.
+Comme le PDF : tout le monde peut lire. Tout le monde peut écrire. La
+valeur vit dans l'outillage, pas dans le contrôle du format.
 
 ---
 
 <a id="espanol"></a>
-## 🇪🇸 Espanol
+## Español
 
-### Capitulo 1 — Dos investigadores, una idea (2013)
+### Capítulo 1 — Dos investigadores, una idea (2013)
 
-En 2013, dos investigadores — Carsten Bormann de la Universidad de Bremen y Paul Hoffman de ICANN — enfrentaban un problema concreto: los objetos conectados (sensores IoT, tarjetas inteligentes, controladores industriales) necesitaban intercambiar datos estructurados, pero JSON era demasiado pesado. Demasiado verboso. Demasiado lento para analizar en un procesador con 8 KB de memoria.
+En 2013, Carsten Bormann (Universidad de Bremen) y Paul Hoffman (ICANN)
+enfrentaban un problema concreto: los objetos conectados — sensores IoT,
+tarjetas inteligentes, controladores industriales — necesitaban
+intercambiar datos estructurados, pero JSON era demasiado pesado. Demasiado
+verboso. Demasiado lento de analizar en un procesador con 8 KB de memoria.
 
-Inventaron **CBOR** — Concise Binary Object Representation. El mismo modelo de datos que JSON, pero codificado en binario. Compacto, rapido, extensible. Publicado como RFC 7049 por la IETF en octubre de 2013.
+Inventaron **CBOR** (Concise Binary Object Representation): el mismo modelo
+de datos que JSON, codificado en binario. Compacto, rápido, extensible.
+Publicado como RFC 7049 por la IETF en octubre de 2013.
 
-CBOR no fue disenado para la web. Fue disenado para maquinas limitadas. Termometros, cerraduras, contadores electricos. Cosas que cuentan cada byte.
+CBOR no fue diseñado para la web. Fue diseñado para máquinas limitadas.
+Termómetros, cerraduras, contadores eléctricos. Cosas que cuentan cada
+byte.
 
-### Capitulo 2 — Madurez y estandarizacion (2020)
+### Capítulo 2 — Madurez y estandarización (2020)
 
-Siete anos despues, CBOR habia demostrado su valor. Adoptado por CoAP, integrado en WebAuthn, utilizado por COSE para firmas criptograficas. Millones de dispositivos hablaban CBOR sin que nadie se diera cuenta.
+Siete años después, CBOR había demostrado su valor. Adoptado por CoAP,
+integrado en WebAuthn, utilizado por COSE para firmas criptográficas.
+Millones de dispositivos hablaban CBOR sin que nadie se diera cuenta.
 
-En diciembre de 2020, RFC 8949 reemplazo la especificacion original. CBOR se convirtio en un Estandar de Internet — el nivel mas alto de validacion en la IETF.
+En diciembre de 2020, RFC 8949 reemplazó la especificación original. CBOR
+se convirtió en un Estándar de Internet — el nivel más alto de validación
+en la IETF.
 
-Pero la web seguia ignorandolo.
+Pero la web seguía ignorándolo.
 
-### Capitulo 3 — El punto de inflexion: llegan los agentes IA (2024-2026)
+### Capítulo 3 — Los agentes IA (2024–2026)
 
-Los agentes IA comenzaron a navegar la web. Y lo que encontraron fue absurdo: **2,86 MB** por pagina, **86 peticiones** para mostrar una sola pagina, **95% ruido** para **5% de contenido util**.
+Los agentes autónomos comenzaron a navegar la web. No con ojos y ratón —
+con peticiones HTTP y parsers. Lo que encontraron:
 
-### Capitulo 4 — CBOR-Web: un archivo, todo el sitio (2026)
+- ~2,86 MB por página en 2025 (HTTP Archive)
+- ~86 peticiones para mostrar una sola página
+- Una pequeña fracción de esa carga es contenido útil; el resto es estilo,
+  scripts, analítica y publicidad
 
-`index.cbor` — junto a `index.html`. Un archivo. Una peticion. Cero JavaScript. Solo contenido estructurado.
+### Capítulo 4 — CBOR-Web (2026)
 
-Una pagina Shopify de 160 KB se convierte en 8 KB de CBOR. Un sitio completo de 84 paginas cabe en 700 KB.
+`index.cbor` junto a `index.html`. Un archivo. Una petición. Sin
+JavaScript, sin CSS. Solo contenido estructurado: títulos, párrafos,
+listas, tablas, enlaces. Una página típica de 1–3 MB de HTML suele caber en
+5–50 KB de CBOR-Web.
 
-### Capitulo 5 — El imperativo ecologico
+### Capítulo 5 — La cuestión ecológica
 
-- Los centros de datos consumieron **415 TWh** en 2024 — prevision de **945 TWh** para 2030 (IEA, "Energy and AI", 2025)
-- El consumo energetico digital crece **9% anual**
-- El peso de las paginas web ha aumentado **+203%** desde 2015
+Los centros de datos consumieron ~415 TWh en 2024 (IEA). Menos datos
+transferidos y menos cómputo en ambos extremos significa menos energía. El
+ahorro por petición es pequeño; multiplicado por miles de millones de
+peticiones diarias de agentes, se vuelve significativo.
 
-Cada byte innecesario es energia desperdiciada. CBOR-Web hace la web **mas ligera para el planeta**.
+### Capítulo 6 — Un estándar de todos
 
-### Capitulo 6 — Un estandar que pertenece a todos
-
-Protocolo de lectura publicado bajo **CC0 — Dominio Publico**. Leer es gratis. Crear es donde vive el valor.
-
----
-
-<a id="中文"></a>
-## 🇨🇳 中文
-
-### 第一章 — 两位研究者，一个想法（2013）
-
-2013年，两位研究者 — 不来梅大学的 Carsten Bormann 和 ICANN 的 Paul Hoffman — 面临一个具体问题：物联网设备需要交换结构化数据，但 JSON 太重了。他们发明了 **CBOR**（简洁二进制对象表示法）。与 JSON 相同的数据模型，但以二进制编码。于 2013 年 10 月作为 RFC 7049 发布。
-
-### 第四章 — CBOR-Web：一个文件，整个网站（2026）
-
-`index.cbor` — 放在 `index.html` 旁边。一个文件，一次请求，零 JavaScript。2025 年平均网页 **2.86 MB**，CBOR-Web 仅需 **5-50 KB**。
-
-### 第五章 — 生态责任
-
-数据中心 2022 年消耗 **415 TWh** 电力，预计 2026 年达到 **620-1,050 TWh**。每个无用字节都是能源浪费。CBOR-Web 让网络对地球**更轻**。
-
-协议以 **CC0 公共领域** 发布。阅读自由，无限制。
-
----
-
-<a id="العربية"></a>
-## 🇸🇦 العربية
-
-### الفصل الأول — باحثان، فكرة واحدة (2013)
-
-في عام 2013، واجه باحثان — كارستن بورمان من جامعة بريمن وبول هوفمان من ICANN — مشكلة ملموسة: أجهزة إنترنت الأشياء كانت بحاجة لتبادل بيانات مهيكلة، لكن JSON كان ثقيلاً جداً. اخترعا **CBOR** — نموذج بيانات JSON نفسه، لكن بترميز ثنائي. نُشر كـ RFC 7049 في أكتوبر 2013.
-
-### الفصل الرابع — CBOR-Web: ملف واحد، الموقع بالكامل (2026)
-
-`index.cbor` — بجانب `index.html`. ملف واحد. طلب واحد. بدون JavaScript. متوسط صفحة الويب **2.86 ميجابايت** في 2025، CBOR-Web يحتاج فقط **5-50 كيلوبايت**.
-
-### الفصل الخامس — الضرورة البيئية
-
-استهلكت مراكز البيانات **415 تيراواط ساعة** في 2024 (IEA). كل بايت غير ضروري هو طاقة مهدرة.
-
-البروتوكول منشور تحت **CC0 — ملكية عامة**. القراءة حرة للجميع.
+CBOR-Web se publica bajo **CC0 1.0** — dominio público. Sin licencia,
+sin permiso, sin patentes. Cualquiera puede leer, escribir, forkar y
+construir servicios comerciales sobre la especificación.
 
 ---
 
-<a id="हिन्दी"></a>
-## 🇮🇳 हिन्दी
-
-### अध्याय 1 — दो शोधकर्ता, एक विचार (2013)
-
-2013 में, दो शोधकर्ताओं — ब्रेमेन विश्वविद्यालय के Carsten Bormann और ICANN के Paul Hoffman — ने एक समस्या का सामना किया: IoT उपकरणों को संरचित डेटा का आदान-प्रदान करना था, लेकिन JSON बहुत भारी था। उन्होंने **CBOR** का आविष्कार किया। RFC 7049 के रूप में अक्टूबर 2013 में प्रकाशित।
-
-### अध्याय 4 — CBOR-Web: एक फ़ाइल, पूरी वेबसाइट (2026)
-
-`index.cbor` — `index.html` के बगल में। एक फ़ाइल। एक अनुरोध। शून्य JavaScript। 2025 में औसत वेबपेज **2.86 MB**, CBOR-Web केवल **5-50 KB**।
-
-### अध्याय 5 — पारिस्थितिक अनिवार्यता
-
-डेटा केंद्रों ने 2022 में **415 TWh** बिजली की खपत की। हर अनावश्यक बाइट बर्बाद ऊर्जा है।
-
-प्रोटोकॉल **CC0 — सार्वजनिक डोमेन** के तहत प्रकाशित। पढ़ना मुफ्त, बिना प्रतिबंध।
-
----
-
-<a id="portugues"></a>
-## 🇧🇷 Portugues
-
-### Capitulo 1 — Dois pesquisadores, uma ideia (2013)
-
-Em 2013, Carsten Bormann (Universidade de Bremen) e Paul Hoffman (ICANN) inventaram o **CBOR** — o mesmo modelo de dados do JSON, mas codificado em binario. Publicado como RFC 7049 em outubro de 2013. Projetado para IoT, nao para a web.
-
-### Capitulo 4 — CBOR-Web: um arquivo, o site inteiro (2026)
-
-`index.cbor` — ao lado de `index.html`. Um arquivo. Uma requisicao. Zero JavaScript. Pagina media em 2025: **2,86 MB**. CBOR-Web: **5-50 KB**.
-
-### Capitulo 5 — O imperativo ecologico
-
-Data centers consumiram **415 TWh** em 2022. Cada byte desnecessario e energia desperdicada. CBOR-Web torna a web **mais leve para o planeta**.
-
-Protocolo publicado sob **CC0 — Dominio Publico**.
-
----
-
-<a id="русский"></a>
-## 🇷🇺 Русский
-
-### Глава 1 — Два исследователя, одна идея (2013)
-
-В 2013 году Карстен Борман (Бременский университет) и Пол Хоффман (ICANN) создали **CBOR** — ту же модель данных, что и JSON, но в бинарной кодировке. Опубликован как RFC 7049 в октябре 2013 года. Разработан для IoT.
-
-### Глава 4 — CBOR-Web: один файл — весь сайт (2026)
-
-`index.cbor` — рядом с `index.html`. Один файл. Один запрос. Без JavaScript. Средняя веб-страница в 2025: **2,86 МБ**. CBOR-Web: **5-50 КБ**.
-
-### Глава 5 — Экологический императив
-
-Дата-центры потребили **415 ТВт·ч** в 2024 году (IEA). Каждый лишний байт — потраченная энергия.
-
-Протокол опубликован под **CC0 — общественное достояние**.
-
----
-
-<a id="日本語"></a>
-## 🇯🇵 日本語
-
-### 第1章 — 二人の研究者、一つのアイデア（2013年）
-
-2013年、Carsten Bormann（ブレーメン大学）と Paul Hoffman（ICANN）は **CBOR** を発明しました。JSONと同じデータモデルをバイナリで符号化。RFC 7049として2013年10月に公開。IoT向けに設計されました。
-
-### 第4章 — CBOR-Web：1ファイルでサイト全体（2026年）
-
-`index.cbor` — `index.html` の隣に配置。1ファイル、1リクエスト、JavaScript不要。2025年の平均ウェブページ **2.86 MB**、CBOR-Webなら **5〜50 KB**。
-
-### 第5章 — 環境への責務
-
-データセンターは2022年に **415 TWh** を消費。不要なバイトはすべてエネルギーの無駄です。
-
-プロトコルは **CC0（パブリックドメイン）** で公開。自由に読めます。
-
----
-
-<a id="deutsch"></a>
-## 🇩🇪 Deutsch
-
-### Kapitel 1 — Zwei Forscher, eine Idee (2013)
-
-2013 erfanden Carsten Bormann (Universitat Bremen) und Paul Hoffman (ICANN) **CBOR** — dasselbe Datenmodell wie JSON, aber binar kodiert. Veroffentlicht als RFC 7049 im Oktober 2013. Entwickelt fur IoT.
-
-### Kapitel 4 — CBOR-Web: eine Datei, die ganze Website (2026)
-
-`index.cbor` — neben `index.html`. Eine Datei. Eine Anfrage. Kein JavaScript. Durchschnittliche Webseite 2025: **2,86 MB**. CBOR-Web: **5-50 KB**.
-
-### Kapitel 5 — Der okologische Imperativ
-
-Rechenzentren verbrauchten 2022 **415 TWh**. Jedes unnotige Byte ist verschwendete Energie. CBOR-Web macht das Web **leichter fur den Planeten**.
-
-Protokoll unter **CC0 — Gemeinfreiheit** veroffentlicht.
-
----
-
-<a id="한국어"></a>
-## 🇰🇷 한국어
-
-### 1장 — 두 연구자, 하나의 아이디어 (2013)
-
-2013년, Carsten Bormann(브레멘 대학)과 Paul Hoffman(ICANN)이 **CBOR**를 발명했습니다. JSON과 동일한 데이터 모델을 바이너리로 인코딩. 2013년 10월 RFC 7049로 발표.
-
-### 4장 — CBOR-Web: 하나의 파일, 전체 웹사이트 (2026)
-
-`index.cbor` — `index.html` 옆에 배치. 파일 하나, 요청 하나, JavaScript 없음. 2025년 평균 웹페이지 **2.86 MB**, CBOR-Web은 **5-50 KB**.
-
-### 5장 — 생태적 의무
-
-데이터센터는 2022년 **415 TWh**를 소비했습니다. 불필요한 바이트는 모두 에너지 낭비입니다.
-
-프로토콜은 **CC0 — 퍼블릭 도메인**으로 공개되었습니다.
-
----
-
-<a id="bahasa-indonesia"></a>
-## 🇮🇩 Bahasa Indonesia
-
-### Bab 1 — Dua peneliti, satu ide (2013)
-
-Pada 2013, Carsten Bormann (Universitas Bremen) dan Paul Hoffman (ICANN) menciptakan **CBOR** — model data yang sama dengan JSON, tapi dikodekan dalam biner. Diterbitkan sebagai RFC 7049 pada Oktober 2013. Dirancang untuk IoT.
-
-### Bab 4 — CBOR-Web: satu file, seluruh situs (2026)
-
-`index.cbor` — di samping `index.html`. Satu file. Satu permintaan. Tanpa JavaScript. Rata-rata halaman web 2025: **2,86 MB**. CBOR-Web: **5-50 KB**.
-
-### Bab 5 — Keharusan ekologis
-
-Pusat data mengonsumsi **415 TWh** pada 2022. Setiap byte yang tidak perlu adalah energi yang terbuang.
-
-Protokol diterbitkan di bawah **CC0 — Domain Publik**.
-
----
-
-## Sources / References
-
-- [RFC 7049 — CBOR (2013)](https://www.rfc-editor.org/rfc/rfc7049.html) — Carsten Bormann, Paul Hoffman
-- [RFC 8949 — CBOR (2020)](https://www.rfc-editor.org/rfc/rfc8949.html) — Internet Standard
+## Sources
+
+- [RFC 7049](https://www.rfc-editor.org/rfc/rfc7049.html) — CBOR (2013),
+  Carsten Bormann, Paul Hoffman
+- [RFC 8949](https://www.rfc-editor.org/rfc/rfc8949.html) — CBOR (2020),
+  Internet Standard
 - [CBOR — Wikipedia](https://en.wikipedia.org/wiki/CBOR)
-- [HTTP Archive — Page Weight 2025](https://almanac.httparchive.org/en/2025/page-weight) — Median 2.86 MB
-- [IEA — Energy and AI](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai) — 415 TWh (2024), projected 945 TWh by 2030
-- [Sustainable Web Design](https://sustainablewebdesign.org/estimating-digital-emissions/) — Carbon footprint methodology
-- [Website Carbon Calculator](https://www.websitecarbon.com/) — Per-site CO2 estimation
+- [HTTP Archive — Page Weight 2025](https://almanac.httparchive.org/en/2025/page-weight)
+- [IEA — Energy and AI](https://www.iea.org/reports/energy-and-ai) —
+  electricity consumption of data centres
+- [Sustainable Web Design](https://sustainablewebdesign.org/estimating-digital-emissions/) — carbon
+  footprint methodology
+
+## Author
+
+Eddie Plot, Burriana, 2026. Early drafts were developed in dialogue with
+the Claude assistant from Anthropic, which contributed to the formalisation
+of the structure and encoding rules.

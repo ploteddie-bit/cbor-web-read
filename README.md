@@ -1,425 +1,270 @@
-# CBOR-Web: The Native Protocol for AI Agents
+# CBOR-Web — A Binary Read Protocol for Agents
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/ploteddie-bit/cbor-web-read/releases)
 [![License](https://img.shields.io/badge/license-CC0-lightgrey.svg)](LICENSE)
-[![AI Ready](https://img.shields.io/badge/AI-Ready-brightgreen)](#why-cbor-for-ai)
-[![RFC Compliant](https://img.shields.io/badge/RFC-8949-orange)](https://www.rfc-editor.org/rfc/rfc8949.html)
+[![Built on](https://img.shields.io/badge/built%20on-RFC%208949-orange)](https://www.rfc-editor.org/rfc/rfc8949.html)
+[![Reference impl](https://img.shields.io/badge/reference%20impl-Rust-dea584)](tools/)
 
-> **One file. One request. Zero parsing errors.**
-> Le standard émergent pour la livraison de contenu web optimisée pour les Intelligence Artificielles, les LLMs et les agents autonomes.
+> **One file. One request. The whole site as structured content.**
 
-## 🤖 Why CBOR for AI?
+CBOR-Web defines a single binary file — `index.cbor` — placed at the root of
+a domain, that contains the full structured content of the site (pages,
+headings, paragraphs, lists, tables, links). It is meant to be served
+alongside `index.html`, not to replace it: humans get HTML, machines get CBOR.
 
-Le HTML est conçu pour les humains (navigateurs), le JSON est verbeux et ambigu pour les machines. **CBOR-Web** est conçu spécifiquement pour les **Agents IA**.
-
-| Métrique | HTML | JSON | **CBOR-Web** |
-| :--- | :--- | :--- | :--- |
-| **Taille (Tokens)** | 100% | ~85% | **~60%** 💰 |
-| **Parsing** | Complexe (DOM) | Texte → Objet | **Binaire Natif** ⚡ |
-| **Ambiguïté** | Élevée (CSS/Layout) | Moyenne (Types) | **Nulle** (Typage strict) |
-| **Coût API LLM** | $$$$ | $$$ | **$** |
-| **Structure Sémantique** | Implicite | Explicite | **Explicite & Compacte** |
-
-### 💰 Impact Économique pour les Agents
-Pour un agent IA qui scrape 1 million de pages par mois :
-- **HTML** : ~50M tokens consommés → Coût élevé.
-- **CBOR-Web** : ~30M tokens consommés → **Économie de 40% sur les coûts d'inférence**.
-- **Latence** : Réduction du temps de parsing et de transfert de ~35%.
-
-## 📦 Qu'est-ce que CBOR-Web ?
-
-CBOR-Web est une spécification légère qui encode le contenu web (texte, images, métadonnées) dans un format binaire standardisé ([RFC 8949](https://www.rfc-editor.org/rfc/rfc8949.html)).
-
-- **Self-Describing** : Tag `55799` inclus nativement.
-- **Typage Fort** : Pas de confusion entre `"123"` (string) et `123` (int).
-- **Extensible** : Supporte les blocs personnalisés pour vos besoins métiers.
+The protocol is built on [RFC 8949](https://www.rfc-editor.org/rfc/rfc8949.html)
+(Concise Binary Object Representation), and released into the public domain
+under **CC0**. Anyone may implement it, fork it, or build commercial services
+on top of it without permission.
 
 ---
 
-**One file. One request. The entire website.**
+## Why a binary protocol next to HTML?
 
-When you arrive on any website, look for `index.cbor` at the root.
-It contains the full site content in a single binary file — no HTML, no CSS, no JavaScript.
-Just structured content, ready to read.
+The web is optimised for browsers: layout, fonts, ads, tracking pixels,
+analytics. A typical page in 2025 weighs ~2.86 MB and triggers ~86 HTTP
+requests to display a few paragraphs of useful text. For autonomous agents —
+crawlers, AI assistants, scrapers — this means:
+
+- **Heavy network traffic** for content that's mostly decoration.
+- **Brittle parsing**: DOM extraction depends on CSS selectors that break.
+- **No typing**: a price `"29.90"` and the string `"29.90"` are indistinguishable.
+
+`index.cbor` strips that down to **structured content**: titles, paragraphs,
+lists, tables, calls to action, and a few metadata blocks. No JavaScript, no
+CSS, no DOM — just a self-described CBOR document that decodes in one pass.
+
+### What CBOR-Web actually optimises
+
+| Concern | Improvement |
+|---|---|
+| Bytes on the wire | Typically ~10–50× lighter than the equivalent HTML page (no markup, no styling, no scripts) |
+| Requests per site | 1 (vs 50–100 for an HTML page with assets) |
+| Parser determinism | Strict typing (RFC 8949), no DOM, no CSS-selector fragility |
+| Crawler load on origin | One static file, easy to CDN and cache |
+| Energy & carbon | Less data transferred, less compute on both ends |
+
+### What CBOR-Web does *not* optimise
+
+> ⚠️ A previous draft of this README claimed that CBOR-Web reduces LLM token
+> costs by ~40%. That claim was wrong and has been removed.
+>
+> LLMs do not consume CBOR bytes — they consume the *decoded text* of titles,
+> paragraphs and tables. The token count of a prompt depends on the semantic
+> content, not on the wire encoding. CBOR-Web saves **bytes**, not tokens.
+> The honest gain is bandwidth, parsing speed, determinism and crawler-load,
+> not LLM inference cost.
 
 ---
-
-## 🎯 Use Cases
-
-### For AI Agents & LLMs
-- **Token Efficiency**: Reduce context window usage by 40%
-- **Deterministic Parsing**: No HTML/CSS ambiguity, strict typing
-- **Cost Reduction**: Lower API costs for content processing
-- **Speed**: Binary parsing is instant vs DOM construction
-
-### For IoT & Constrained Devices
-- **Low Bandwidth**: 60% smaller than HTML equivalents
-- **Single Request**: Complete site in one HTTP call
-- **No JavaScript**: Works on minimal runtimes
-- **Memory Efficient**: No heavy DOM tree required
-
-### For Search Engines & Crawlers
-- **Structured Data**: Content is pre-extracted and typed
-- **Faster Indexing**: Skip HTML parsing, go straight to content
-- **Reduced Load**: Less server pressure, fewer requests
-
----
-
-## Protocol
-
-```
-GET https://example.com/index.cbor
-```
-
-The file is standard CBOR (RFC 8949), self-described (tag 55799).
 
 ## Structure
 
-> **Note:** This is the **read protocol** — a simplified 4-key structure optimised for AI agent consumption. The full [CBOR-Web Specification v3.0](https://github.com/ploteddie-bit/cbor-web/blob/master/CBOR-WEB-SPEC-v3.0.md) defines 7 keys (0-6) including security (key 3), navigation (key 4), and meta (key 6) for authoring and verification. The read protocol maps pages to key 3 for simplicity — an agent only needs to read keys 0-3 to access all public content.
+`index.cbor` is a self-described CBOR map with seven top-level keys:
 
 ```
-{
-  0: "cbor-web"              → type identifier
-  1: 3                       → version
-  2: {                       → site metadata
-    "name": "...",
-    "domain": "...",
-    "description": "...",
-    "lang": "fr",
-    "contact": { "email", "phone" },
-    "geo": { "region", "country", "coordinates" },
-    "legal": { "entity", "siret", "address" },
-    "network": [ related sites ],
-    "generated_at": "2026-03-24T22:29:13+00:00"
-  },
-  3: {                       → pages (all public content)
-    "/": { page },
-    "/about": { page },
-    "/products/item": { page },
-    ...
-  }
-}
+0  type        "cbor-web"
+1  version     3
+2  site        { domain, name, description, languages, contact, geo }
+3  security    { default_access, public_key? }                (optional)
+4  navigation  { main: [...], footer: [...], hierarchy: ... } (optional)
+5  pages       [ { path, title, lang, access, content: [...] } ]
+6  meta        { generated_at, generator, total_pages, signature? }
 ```
 
-## Page structure
-
-Each page contains:
+Each page contains an ordered array of typed blocks:
 
 ```
-{
-  "title": "Page title",
-  "description": "Short description",
-  "updated": "ISO 8601 datetime",
-  "content": [               → ordered array of blocks
-    {"t":"h", "l":1, "v":"Heading text"},
-    {"t":"p", "v":"Paragraph text"},
-    {"t":"ul", "v":["item 1","item 2"]},
-    {"t":"ol", "v":["step 1","step 2"]},
-    {"t":"table", "headers":["A","B"], "rows":[["1","2"]]},
-    {"t":"cta", "v":"Call to action", "href":"/contact"},
-    {"t":"q", "v":"Quote text", "attr":"Source"},
-    {"t":"img", "src":"url", "alt":"description"}
-  ]
-}
+{"t": "h",     "l": 1, "v": "Welcome"}        # heading, levels 1-6
+{"t": "p",     "v": "…"}                       # paragraph
+{"t": "ul",    "v": ["…", "…"]}                # bullet list
+{"t": "ol",    "v": ["…", "…"]}                # numbered list
+{"t": "table", "headers": [...], "rows": [...]}
+{"t": "cta",   "v": "Read more", "href": "/x"} # call to action
+{"t": "q",     "v": "…", "attr": "Source"}     # quote
+{"t": "img",   "src": "…", "alt": "…"}         # image reference
+{"t": "code",  "v": "…", "lang": "rust"}       # code block
+{"t": "note",  "v": "…", "level": "warn"}      # editorial note
+{"t": "dl",    "v": [{"term": "…", "def": "…"}]} # definitions
+{"t": "embed", "src": "…", "description": "…"} # embedded content
+{"t": "sep"}                                    # separator
 ```
 
-## Block types
+Full structure and encoding rules: [CBOR-WEB-SPEC-v3.0.md](CBOR-WEB-SPEC-v3.0.md).
 
-| Code | Type | Required keys | Description |
-|------|------|---------------|-------------|
-| `h` | Heading | `l` (1-6), `v` | Section heading, level 1-6 |
-| `p` | Paragraph | `v` | Body text |
-| `ul` | Unordered list | `v` (array) | Bullet list |
-| `ol` | Ordered list | `v` (array) | Numbered list |
-| `table` | Table | `headers`, `rows` | Data table |
-| `cta` | Call to action | `v`, `href` | Button or link |
-| `q` | Quote | `v`, `attr` | Citation with source |
-| `img` | Image | `src`, `alt` | Image reference |
+---
 
-## Why
+## Reference implementation
 
-| | HTML website | index.cbor |
-|---|---|---|
-| Requests | 50-100+ per page | **1** |
-| Size | 100-500 KB per page | **5-50 KB total site** |
-| Parse time | DOM + CSS + JS | **Instant** (binary) |
-| Content ratio | ~5% useful content | **100%** |
+A Rust implementation lives in [`tools/`](tools/). It provides four binaries:
+
+| Binary | Purpose |
+|---|---|
+| `cbor-web-validate` | Check that a file conforms to the spec (tag 55799, required keys, types, deterministic encoding) |
+| `cbor-web-decode` | Pretty-print a `.cbor` file as JSON (full or truncated preview) |
+| `cbor-web-gen` | Build a `.cbor` from a YAML source file |
+| `cbor-web-migrate` | Convert legacy 4-keys files (pages under key 3) to the v3.0 structure |
+
+Build:
+
+```sh
+cargo build --release --manifest-path tools/Cargo.toml
+```
+
+Quick check:
+
+```sh
+./tools/target/release/cbor-web-validate examples/pacific-planet.cbor
+```
+
+See [`tools/README.md`](tools/README.md) for details and the YAML source
+format.
+
+### Building your own implementation
+
+Any RFC 8949 CBOR encoder/decoder can read or write CBOR-Web files. Known
+compatible libraries:
+
+| Language | Library |
+|---|---|
+| Rust | [`ciborium`](https://crates.io/crates/ciborium) (used by this repo) |
+| Go | [`fxamacker/cbor`](https://github.com/fxamacker/cbor) |
+| C / C++ | [`libcbor`](https://github.com/PJK/libcbor) |
+| Java | [`jackson-dataformat-cbor`](https://github.com/FasterXML/jackson-dataformats-binary) |
+
+These are **CBOR codecs**, not CBOR-Web libraries. They give you the
+encoding/decoding primitives; the protocol-specific structure (the 7 keys,
+the page schema, the block types) is up to you to implement on top.
+
+---
 
 ## Examples
 
-This repository contains real-world `index.cbor` files in the `examples/` directory.
-
-The file `example-readable.json` is a **truncated human-readable preview** — the `_truncated` and `_note` fields are not part of the CBOR-Web protocol. They exist only to make the JSON preview scannable. The actual `.cbor` files contain all pages and all content blocks.
-
-### Complete Example: All Block Types
-
-See `examples/example-all-blocks.cbor` for a complete demonstration of all 8 block types:
-- ✅ `h` (headings levels 1-6)
-- ✅ `p` (paragraphs)
-- ✅ `ul` (unordered lists)
-- ✅ `ol` (ordered lists)
-- ✅ `table` (data tables)
-- ✅ `cta` (calls to action)
-- ✅ `q` (quotes with attribution)
-- ✅ `img` (images with alt text)
-
-## 🚀 Getting Started
-
-### For Content Providers
-1. Create your `index.cbor` file following the structure above
-2. Place it at the root of your web server
-3. Serve it with `Content-Type: application/cbor` header
-4. Agents will automatically discover and parse it
-
-### For AI Agent Developers
-1. Request `https://example.com/index.cbor`
-2. Parse the CBOR binary (libraries available for Python, JS, Rust, Go)
-3. Access content via keys 0-3 (type, version, metadata, pages)
-4. Iterate through page content blocks by type
-
-### Libraries & Tools
-
-| Language | Library | Status |
-|----------|---------|--------|
-| Python | `cbor2` | ✅ Ready |
-| JavaScript | `cbor-web-reader` | 🔜 Coming Soon |
-| Rust | `serde_cbor` | ✅ Ready |
-| Go | `github.com/fxamacker/cbor` | ✅ Ready |
-
-## 📊 Market Position
-
-CBOR-Web fills a critical gap in the AI infrastructure stack:
+[`examples/`](examples/) contains real-world `index.cbor` files generated
+from production sites:
 
 ```
-┌─────────────────────────────────────────────────┐
-│           Web Content Delivery Stack            │
-├─────────────────────────────────────────────────┤
-│ HTML → Humans (Browsers)                        │
-│ JSON → APIs (Structured Data)                   │
-│ CBOR-Web → AI Agents (Optimized Content)        │ ← You are here
-│ RSS → Feed Readers (Updates)                    │
-└─────────────────────────────────────────────────┘
+deltopide-com.cbor            123 KB   Deltopide International (16 pages)
+deltopide-es.cbor              95 KB   Deltopide España (12 pages)
+deltopide-fr.cbor              68 KB   Deltopide FR (9 pages)
+eloiseplot-dieteticienne.cbor  18 KB   Dietitian site (6 pages)
+example-all-blocks.cbor         3 KB   Every block type, minimal site
+laforetnousregale.cbor        709 KB   Edible-forest catalogue (55 pages)
+pacific-planet.cbor            16 KB   Agroforestry programmes (6 pages)
+verdetao.cbor                  30 KB   Mushroom shop (15 pages)
 ```
 
-### Why Now?
-- 🤖 **AI Agent Explosion**: Millions of autonomous agents need efficient content access
-- 💸 **Token Economics**: LLM context windows are expensive; CBOR reduces costs by 40%
-- ⚡ **Edge Computing**: IoT devices need lightweight, parseable formats
-- 🔒 **Security**: Binary format reduces attack surface vs HTML/JS injection
+`example-readable.json` is a human-readable JSON preview generated by
+`cbor-web-decode --preview`. The `_truncated` markers exist only for the
+preview — the actual `.cbor` files contain every block.
+
+---
+
+## CBOR-Web vs `llms.txt`
+
+[`llms.txt`](https://llmstxt.org/) is a Markdown summary of a site's content,
+intended for LLMs. It serves a different need:
+
+| Aspect | `llms.txt` | `index.cbor` |
+|---|---|---|
+| Format | Markdown (text) | CBOR (binary) |
+| Audience | LLMs reading a prompt | Crawlers, agents, parsers |
+| Granularity | Curated digest (the author chooses what's important) | Full structured content (every page, every block) |
+| Typing | Implicit | Strict types via RFC 8949 |
+| Size | Small (~KB) | Compact but larger (full content) |
+| Adoption | Growing rapidly (early 2026) | Early stage |
+| Parsing | LLM reads it as text | Binary one-shot decode |
+
+The two are **complementary**, not competitive. A site can serve both: an
+`llms.txt` for narrative LLM consumption, and an `index.cbor` for machine
+crawlers and data pipelines that need typed, exhaustive content. Most sites
+do not need `index.cbor` — `llms.txt` is sufficient. The cases where CBOR-Web
+adds value:
+
+- Catalogues and listings (tables, structured products)
+- Sites with many pages where a digest is too lossy
+- Crawlers that need deterministic parsing for indexing or feature extraction
+- Constrained clients (IoT, embedded) that prefer binary
+
+If `llms.txt` covers your need, use `llms.txt`.
+
+---
+
+## Positioning
+
+```
+Format         Audience                          Status
+─────────────────────────────────────────────────────────────────────
+HTML           Humans (browsers)                 Universal
+JSON / REST    APIs                              Universal
+llms.txt       LLM context (Markdown summary)    Growing
+robots.txt     Crawlers (rules)                  Universal
+sitemap.xml    Crawlers (URL list)               Universal
+index.cbor     Agents (full binary content)      Early stage
+```
+
+CBOR-Web is one of several formats designed for non-human consumers. None of
+them replaces HTML; each one optimises for a different reader.
+
+---
+
+## Roadmap
+
+| Phase | Status |
+|---|---|
+| **Foundation** — spec, examples, Rust reference implementation | Done |
+| **Ecosystem** — CMS plugins, Go/JS implementations, validator CI | In progress |
+| **Standardisation** — IETF draft, browser/crawler integration | Not started |
+
+Contributions to any of these are welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Languages
+
+Short overview in three languages. The full specification is currently in
+English only; translations are welcome via pull request.
+
+### Français
+
+`index.cbor` est un fichier binaire placé à la racine d'un site, à côté
+d'`index.html`. Il contient le contenu structuré complet du site (titres,
+paragraphes, listes, tableaux, liens) dans le format binaire CBOR (RFC 8949).
+Les humains lisent l'HTML, les machines lisent le CBOR. Un seul fichier, une
+seule requête, un site entier. Licence : domaine public (CC0).
+
+### Español
+
+`index.cbor` es un archivo binario colocado en la raíz de un sitio, junto a
+`index.html`. Contiene el contenido estructurado completo del sitio (títulos,
+párrafos, listas, tablas, enlaces) en formato binario CBOR (RFC 8949). Los
+humanos leen HTML, las máquinas leen CBOR. Un archivo, una solicitud, un sitio
+entero. Licencia: dominio público (CC0).
+
+---
+
+## Related projects
+
+- [`cbor-web.com`](https://cbor-web.com) — one possible hosted service for
+  generating and signing `index.cbor` files. See
+  [CBOR-WEB-MONETIZATION.md](CBOR-WEB-MONETIZATION.md) for the model it
+  implements. The service is independent of this spec; alternative
+  generators (self-hosted, OSS, vendor-specific) are equally valid.
+- [`llms.txt`](https://llmstxt.org/) — Markdown-based site summary for LLMs.
+  Complementary to CBOR-Web (see above).
+
+---
 
 ## License
 
-CC0 — Public Domain. Read freely. No restrictions.
+This repository — specification, examples, and reference implementation — is
+released under [CC0 1.0 Universal](LICENSE) (public domain).
 
-The reading protocol belongs to everyone.
-
----
-
-🇫🇷 🇪🇸 🇨🇳 🇸🇦 🇮🇳 🇧🇷 🇷🇺 🇯🇵 🇩🇪 🇰🇷 🇮🇩 🇬🇧
-
-# Protocole de lecture CBOR-Web
-
-**Un fichier. Une requete. Tout le site.**
-
-Quand vous arrivez sur un site web, cherchez `index.cbor` a la racine.
-Il contient tout le contenu du site dans un seul fichier binaire — pas de HTML, pas de CSS, pas de JavaScript.
-Juste du contenu structure, pret a lire.
-
-Le fichier est du CBOR standard (RFC 8949). La structure est identique a celle decrite ci-dessus.
+The read protocol belongs to everyone.
 
 ---
 
-# Protocolo de lectura CBOR-Web
-
-**Un archivo. Una solicitud. Todo el sitio web.**
-
-Cuando llegas a cualquier sitio web, busca `index.cbor` en la raiz.
-Contiene todo el contenido del sitio en un unico archivo binario — sin HTML, sin CSS, sin JavaScript.
-Solo contenido estructurado, listo para leer.
-
-El archivo es CBOR estandar (RFC 8949). La estructura es identica a la descrita arriba.
-
----
-
-# CBOR-Web 阅读协议
-
-**一个文件。一次请求。整个网站。**
-
-当你访问任何网站时，在根目录查找 `index.cbor`。
-它将整个网站内容包含在一个二进制文件中——没有 HTML，没有 CSS，没有 JavaScript。
-只有结构化内容，随时可读。
-
-文件使用标准 CBOR 格式（RFC 8949）。结构与上述描述相同。
-
----
-
-# بروتوكول قراءة CBOR-Web
-
-**ملف واحد. طلب واحد. الموقع بالكامل.**
-
-عندما تصل إلى أي موقع ويب، ابحث عن `index.cbor` في الجذر.
-يحتوي على محتوى الموقع بالكامل في ملف ثنائي واحد — بدون HTML، بدون CSS، بدون JavaScript.
-فقط محتوى منظم، جاهز للقراءة.
-
-الملف بصيغة CBOR القياسية (RFC 8949). البنية مطابقة لما هو موصوف أعلاه.
-
----
-
-# CBOR-Web पठन प्रोटोकॉल
-
-**एक फ़ाइल। एक अनुरोध। पूरी वेबसाइट।**
-
-जब आप किसी वेबसाइट पर पहुँचें, तो रूट पर `index.cbor` खोजें।
-इसमें पूरी साइट की सामग्री एक बाइनरी फ़ाइल में होती है — कोई HTML नहीं, कोई CSS नहीं, कोई JavaScript नहीं।
-केवल संरचित सामग्री, पढ़ने के लिए तैयार।
-
-फ़ाइल मानक CBOR (RFC 8949) में है। संरचना ऊपर वर्णित के समान है।
-
----
-
-# Protocolo de leitura CBOR-Web
-
-**Um arquivo. Uma requisicao. O site inteiro.**
-
-Quando voce chega em qualquer site, procure `index.cbor` na raiz.
-Ele contem todo o conteudo do site em um unico arquivo binario — sem HTML, sem CSS, sem JavaScript.
-Apenas conteudo estruturado, pronto para ler.
-
-O arquivo e CBOR padrao (RFC 8949). A estrutura e identica a descrita acima.
-
----
-
-# Протокол чтения CBOR-Web
-
-**Один файл. Один запрос. Весь сайт.**
-
-Когда вы попадаете на любой сайт, ищите `index.cbor` в корне.
-Он содержит весь контент сайта в одном бинарном файле — без HTML, без CSS, без JavaScript.
-Только структурированный контент, готовый к чтению.
-
-Файл в стандартном формате CBOR (RFC 8949). Структура идентична описанной выше.
-
----
-
-# CBOR-Web 読み取りプロトコル
-
-**1つのファイル。1つのリクエスト。サイト全体。**
-
-ウェブサイトにアクセスしたら、ルートで `index.cbor` を探してください。
-サイトの全コンテンツが1つのバイナリファイルに含まれています — HTML なし、CSS なし、JavaScript なし。
-構造化されたコンテンツのみ、すぐに読めます。
-
-ファイルは標準 CBOR（RFC 8949）形式です。構造は上記と同じです。
-
----
-
-# CBOR-Web Leseprotokoll
-
-**Eine Datei. Eine Anfrage. Die gesamte Website.**
-
-Wenn Sie auf einer Website ankommen, suchen Sie `index.cbor` im Stammverzeichnis.
-Es enthalt den gesamten Inhalt der Website in einer einzigen Binardatei — kein HTML, kein CSS, kein JavaScript.
-Nur strukturierter Inhalt, bereit zum Lesen.
-
-Die Datei ist Standard-CBOR (RFC 8949). Die Struktur ist identisch mit der oben beschriebenen.
-
----
-
-# CBOR-Web 읽기 프로토콜
-
-**파일 하나. 요청 하나. 전체 웹사이트.**
-
-웹사이트에 도착하면 루트에서 `index.cbor`를 찾으세요.
-하나의 바이너리 파일에 전체 사이트 콘텐츠가 담겨 있습니다 — HTML 없이, CSS 없이, JavaScript 없이.
-구조화된 콘텐츠만, 바로 읽을 수 있습니다.
-
-파일은 표준 CBOR (RFC 8949) 형식입니다. 구조는 위에 설명된 것과 동일합니다.
-
----
-
-# Protokol Baca CBOR-Web
-
-**Satu file. Satu permintaan. Seluruh situs web.**
-
-Ketika Anda tiba di situs web mana pun, cari `index.cbor` di root.
-File ini berisi seluruh konten situs dalam satu file biner — tanpa HTML, tanpa CSS, tanpa JavaScript.
-Hanya konten terstruktur, siap dibaca.
-
-File menggunakan format standar CBOR (RFC 8949). Strukturnya identik dengan yang dijelaskan di atas.
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 🔒 Security
-
-For security issues, please see our [Security Policy](.github/SECURITY.md).
-
-## 📜 License
-
-This project is licensed under CC0 1.0 Universal - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Related Projects
-
-- [CBOR-Web Full Specification](https://github.com/ploteddie-bit/cbor-web) - Complete authoring spec with security, navigation, and meta keys
-- [CBOR-Web Read Protocol](https://github.com/ploteddie-bit/cbor-web-read) - Simplified read-only protocol for AI agents (this repo)
-- [Reference Implementation](LINK_TO_COME) - Official CBOR-Web library for multiple languages
-- [CBOR Playground](LINK_TO_COME) - Online tool to create, validate, and visualize CBOR-Web files
-
-## 📈 Adoption Roadmap
-
-### Phase 1: Foundation (Q2 2026) ✅
-- [x] Specification v3.0 published
-- [x] Reference examples created
-- [x] Documentation complete
-- [ ] Reference implementation (Python/JS)
-
-### Phase 2: Ecosystem (Q3-Q4 2026)
-- [ ] Library releases for major languages
-- [ ] CMS plugins (WordPress, Drupal, Strapi)
-- [ ] Static site generator support (Hugo, Jekyll, Next.js)
-- [ ] Validator tool & CI/CD integration
-
-### Phase 3: Standardization (2027+)
-- [ ] IETF draft proposal
-- [ ] Major AI platform integrations
-- [ ] Search engine crawler support
-- [ ] Browser extension for human-readable view
-
-## 📬 Contact
-
-- **Questions?** Open a [Discussion](../../discussions)
-- **Bugs?** Create an [Issue](../../issues)
-- **Security?** See [SECURITY.md](.github/SECURITY.md)
-- **Partnership?** Contact via GitHub Discussions
-
----
-
-<details>
-<summary>📜 A note from the author</summary>
-
-> **\"A protocol for everyone\"**
->
-> On March 25, 2026, while building this specification, the decision was made to remove "ExploDev" from the public documents — it was an internal name, not a legal entity. The world should see Deltopide.
->
-> This specification was written to bridge two worlds: humans who imagine and machines that process. CBOR-Web is designed so that both can understand each other without translation layers, without bloat, without barriers.
->
-> One file. One request. The entire website.
->
-> *— Eddie, Burriana, 25 mars 2026*
-
-</details>
-
----
-
-<div align="center">
-
-**Ready to make the web more efficient for AI?**
-
-[Get Started](#-getting-started) • [View Examples](examples/) • [Read Spec](https://github.com/ploteddie-bit/cbor-web)
-
-Made with ❤️ for the future of machine-readable web
-
-</div>
+## Contact
+
+- Bugs and spec issues: [open an issue](../../issues)
+- Discussion: [open a discussion](../../discussions)
+- Security: see [`.github/SECURITY.md`](.github/SECURITY.md)

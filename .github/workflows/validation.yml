@@ -1,4 +1,4 @@
-name: CBOR Validation
+name: CBOR-Web validation
 
 on:
   push:
@@ -7,158 +7,79 @@ on:
     branches: [ main, master ]
 
 jobs:
-  validate-cbor:
-    name: Validate CBOR Files
+  validate-examples:
+    name: Validate every examples/*.cbor against the spec
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install cbor2
-    
-    - name: Validate CBOR syntax
-      run: |
-        echo "=== Validating CBOR files ==="
-        python -c "
-import cbor2
-import sys
-from pathlib import Path
+      - uses: actions/checkout@v4
 
-errors = []
-cbor_files = list(Path('examples').glob('*.cbor'))
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-if not cbor_files:
-    print('⚠️ No CBOR files found in examples/')
-    sys.exit(0)
+      - name: Cache cargo registry and build artefacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tools/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-print(f'Found {len(cbor_files)} CBOR file(s)\n')
+      - name: Build cbor-web-validate
+        run: cargo build --release --manifest-path tools/Cargo.toml --bin cbor-web-validate
 
-for cbor_file in cbor_files:
-    try:
-        with open(cbor_file, 'rb') as f:
-            data = cbor2.load(f)
-        print(f'✓ {cbor_file.name} - Valid CBOR ({cbor_file.stat().st_size:,} bytes)')
-    except Exception as e:
-        errors.append(f'{cbor_file.name}: {e}')
-        print(f'✗ {cbor_file.name} - {e}')
+      - name: Validate every example
+        run: ./tools/target/release/cbor-web-validate examples/*.cbor
 
-print()
-if errors:
-    print(f'❌ {len(errors)} file(s) failed validation')
-    for error in errors:
-        print(f'  - {error}')
-    sys.exit(1)
-else:
-    print(f'✅ All {len(cbor_files)} file(s) are valid!')
-"
-    
-    - name: Check CBOR structure
-      run: |
-        echo "=== Checking CBOR structure ==="
-        python -c "
-import cbor2
-import sys
-from pathlib import Path
-
-required_keys = {0, 1, 2, 3}
-errors = []
-
-for cbor_file in Path('examples').glob('*.cbor'):
-    with open(cbor_file, 'rb') as f:
-        data = cbor2.load(f)
-    
-    # Check root type
-    if not isinstance(data, dict):
-        errors.append(f'{cbor_file.name}: Root is not a map (got {type(data).__name__})')
-        continue
-    
-    # Check required keys
-    missing = required_keys - set(data.keys())
-    if missing:
-        errors.append(f'{cbor_file.name}: Missing required keys {missing}')
-        continue
-    
-    # Check key 0 (type identifier)
-    if data[0] != 'cbor-web':
-        errors.append(f'{cbor_file.name}: Key 0 should be \"cbor-web\", got \"{data[0]}\"')
-        continue
-    
-    # Check key 1 (version)
-    if not isinstance(data[1], int) or data[1] < 1:
-        errors.append(f'{cbor_file.name}: Key 1 (version) should be a positive integer')
-        continue
-    
-    # Check key 2 (metadata)
-    if not isinstance(data[2], dict):
-        errors.append(f'{cbor_file.name}: Key 2 (metadata) should be a map')
-        continue
-    
-    # Check key 3 (pages)
-    if not isinstance(data[3], dict):
-        errors.append(f'{cbor_file.name}: Key 3 (pages) should be a map')
-        continue
-    
-    # Check for self-describing tag (55799)
-    # Note: cbor2 doesn't preserve tags by default, so we skip this check
-    
-    print(f'✓ {cbor_file.name}: Structure valid')
-
-if errors:
-    print()
-    print('❌ Structure errors found:')
-    for error in errors:
-        print(f'  - {error}')
-    sys.exit(1)
-else:
-    print()
-    print('✅ All files have valid structure!')
-"
-  
-  check-examples:
-    name: Check Example JSON
+  roundtrip:
+    name: YAML -> CBOR -> validate round-trip
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Validate example JSON
-      run: |
-        echo "=== Validating example JSON files ==="
-        python -c "
-import json
-import sys
-from pathlib import Path
+      - uses: actions/checkout@v4
 
-errors = []
-json_files = list(Path('examples').glob('*.json'))
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-if not json_files:
-    print('⚠️ No JSON files found in examples/')
-    sys.exit(0)
+      - name: Cache cargo registry and build artefacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tools/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-for json_file in json_files:
-    try:
-        with open(json_file, 'r') as f:
-            data = json.load(f)
-        print(f'✓ {json_file.name} - Valid JSON')
-    except Exception as e:
-        errors.append(f'{json_file.name}: {e}')
-        print(f'✗ {json_file.name} - {e}')
+      - name: Build tooling
+        run: cargo build --release --manifest-path tools/Cargo.toml
 
-if errors:
-    print()
-    print(f'❌ {len(errors)} file(s) failed validation')
-    sys.exit(1)
-else:
-    print(f'✅ All {len(json_files)} JSON file(s) are valid!')
-"
+      - name: Generate sample site from YAML
+        run: ./tools/target/release/cbor-web-gen tools/examples/site.yaml -o /tmp/roundtrip.cbor
+
+      - name: Validate the generated file
+        run: ./tools/target/release/cbor-web-validate --strict /tmp/roundtrip.cbor
+
+  json-preview:
+    name: Validate examples/example-readable.json is parseable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse JSON
+        run: python3 -c "import json, sys; json.load(open('examples/example-readable.json')); print('OK')"
+
+  rust-checks:
+    name: cargo fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust toolchain with rustfmt and clippy
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: cargo fmt --check
+        run: cargo fmt --manifest-path tools/Cargo.toml --check
+      - name: cargo clippy
+        run: cargo clippy --manifest-path tools/Cargo.toml --release -- -D warnings

@@ -2,62 +2,76 @@
   "0": "cbor-web",
   "1": 3,
   "2": {
-    "name": "Pacific Planet",
-    "domain": "pacific-planet.com",
-    "description": "Education nature, formations foret comestible, ateliers decouverte — Bretagne",
-    "lang": "fr",
     "contact": {
       "phone": "+33659028595"
     },
+    "default_language": "fr",
+    "description": "Education nature, formations foret comestible, ateliers decouverte — Bretagne",
+    "domain": "pacific-planet.com",
+    "generated_at": 1774391353,
     "geo": {
-      "region": "Cotes-d'Armor, Bretagne",
-      "country": "FR"
+      "country": "FR",
+      "region": "Cotes-d'Armor, Bretagne"
     },
+    "languages": [
+      "fr"
+    ],
     "legal": {},
+    "name": "Pacific Planet",
     "network": [
       {
+        "description": "Foret comestible bio, produits forestiers — Bretagne",
         "domain": "laforetnousregale.fr",
-        "name": "La Foret Nous Regale",
-        "description": "Foret comestible bio, produits forestiers — Bretagne"
+        "name": "La Foret Nous Regale"
       },
       {
+        "description": "Service de sciage mobile sur site — Cotes-d'Armor",
         "domain": "crm.laforetnousregale.fr",
-        "name": "Sciage Mobile B701",
-        "description": "Service de sciage mobile sur site — Cotes-d'Armor"
+        "name": "Sciage Mobile B701"
       },
       {
+        "description": "Dieteticienne-nutritionniste, consultations et accompagnement",
         "domain": "eloiseplot-dieteticienne.com",
-        "name": "Eloise Plot Dieteticienne",
-        "description": "Dieteticienne-nutritionniste, consultations et accompagnement"
+        "name": "Eloise Plot Dieteticienne"
       },
       {
+        "description": "Agence digitale, creation web, IA — France",
         "domain": "deltopide.fr",
-        "name": "Deltopide FR",
-        "description": "Agence digitale, creation web, IA — France"
+        "name": "Deltopide FR"
       },
       {
+        "description": "Agencia digital, desarrollo web, IA — Espana",
         "domain": "deltopide.es",
-        "name": "Deltopide ES",
-        "description": "Agencia digital, desarrollo web, IA — Espana"
+        "name": "Deltopide ES"
       },
       {
+        "description": "Digital agency, web development, AI — International",
         "domain": "deltopide.com",
-        "name": "Deltopide",
-        "description": "Digital agency, web development, AI — International"
+        "name": "Deltopide"
       },
       {
+        "description": "Setas gourmet y suplementos naturales del bosque — Espana",
         "domain": "verdetao.com",
-        "name": "Verdetao",
-        "description": "Setas gourmet y suplementos naturales del bosque — Espana"
+        "name": "Verdetao"
       }
-    ],
-    "generated_at": "2026-03-24T22:29:13+00:00"
+    ]
   },
   "3": {
-    "/": {
-      "title": "Pacific Planet - Agroforesterie & Biodiversité en Bretagne",
-      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
-      "updated": "2026-03-24T22:29:13+00:00",
+    "default_access": "T2"
+  },
+  "4": {
+    "main": [
+      "/",
+      "/formations",
+      "/ateliers-visite",
+      "/animations-seminaires",
+      "/pourquoi",
+      "/contact"
+    ]
+  },
+  "5": [
+    {
+      "access": "T2",
       "content": [
         {
           "l": 1,
@@ -85,14 +99,17 @@
           "v": "Bureau d'études"
         },
         {
-          "_truncated": "34 more blocks in full file"
+          "_truncated": "34 more blocks omitted"
         }
-      ]
-    },
-    "/formations": {
-      "title": "Formations agroforesterie Bretagne | Pacific Planet",
+      ],
       "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
-      "updated": "2026-03-24T22:29:13+00:00",
+      "lang": "fr",
+      "path": "/",
+      "title": "Pacific Planet - Agroforesterie & Biodiversité en Bretagne",
+      "updated": 1774391353
+    },
+    {
+      "access": "T2",
       "content": [
         {
           "l": 1,
@@ -120,11 +137,170 @@
           "v": "Allier alimentation et biodiversité"
         },
         {
-          "_truncated": "36 more blocks in full file"
+          "_truncated": "36 more blocks omitted"
         }
-      ]
+      ],
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "lang": "fr",
+      "path": "/formations",
+      "title": "Formations agroforesterie Bretagne | Pacific Planet",
+      "updated": 1774391353
+    },
+    {
+      "access": "T2",
+      "content": [
+        {
+          "l": 1,
+          "t": "h",
+          "v": "Ateliers & Visites"
+        },
+        {
+          "l": 2,
+          "t": "h",
+          "v": "Visite de la forêt"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Informations pratiques"
+        },
+        {
+          "l": 4,
+          "t": "h",
+          "v": "Durée"
+        },
+        {
+          "l": 4,
+          "t": "h",
+          "v": "Lieu"
+        },
+        {
+          "_truncated": "31 more blocks omitted"
+        }
+      ],
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "lang": "fr",
+      "path": "/ateliers-visite",
+      "title": "Ateliers nature & Visites forêt en Bretagne | Pacific Planet",
+      "updated": 1774391353
+    },
+    {
+      "access": "T2",
+      "content": [
+        {
+          "l": 1,
+          "t": "h",
+          "v": "Séminaires"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Où ça ?"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Nombre de personnes ?"
+        },
+        {
+          "l": 2,
+          "t": "h",
+          "v": "Nos animations phares"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Rallye Forestier"
+        },
+        {
+          "_truncated": "32 more blocks omitted"
+        }
+      ],
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "lang": "fr",
+      "path": "/animations-seminaires",
+      "title": "Séminaires nature & Team building en Bretagne | Pacific Planet",
+      "updated": 1774391353
+    },
+    {
+      "access": "T2",
+      "content": [
+        {
+          "l": 1,
+          "t": "h",
+          "v": "Notre équipe"
+        },
+        {
+          "l": 2,
+          "t": "h",
+          "v": "Nos engagements"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Biodiversité"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Transmission"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Impact"
+        },
+        {
+          "_truncated": "31 more blocks omitted"
+        }
+      ],
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "lang": "fr",
+      "path": "/pourquoi",
+      "title": "Notre équipe - Engagés pour la biodiversité | Pacific Planet",
+      "updated": 1774391353
+    },
+    {
+      "access": "T2",
+      "content": [
+        {
+          "l": 1,
+          "t": "h",
+          "v": "Nous contacter"
+        },
+        {
+          "l": 2,
+          "t": "h",
+          "v": "Envoyez-nous un message"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Email"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Adresse"
+        },
+        {
+          "l": 3,
+          "t": "h",
+          "v": "Horaires"
+        },
+        {
+          "_truncated": "12 more blocks omitted"
+        }
+      ],
+      "description": "Pacific Planet : formations en agroforesterie, séminaire et animations nature, ateliers pour la biodiversité en Bretagne. Bureau d'étude agroforestier",
+      "lang": "fr",
+      "path": "/contact",
+      "title": "Contact - Pacific Planet Bretagne | Pacific Planet",
+      "updated": 1774391353
     }
-  },
-  "_note": "Truncated example — full .cbor files contain all pages and all content blocks",
-  "_total_pages_in_file": 6
+  ],
+  "6": {
+    "generator": "cbor-web-migrate/0.1",
+    "total_pages": 6
+  }
 }
