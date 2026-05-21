@@ -1,0 +1,89 @@
+# tools/ — CBOR-Web reference implementation (Rust)
+
+Four binaries that read, write and validate CBOR-Web files against the read
+protocol spec. License: **CC0 1.0** (public domain).
+
+## Build
+
+Requires Rust 1.74+ (stable). From the repository root:
+
+```sh
+cargo build --release --manifest-path tools/Cargo.toml
+```
+
+Binaries land in `tools/target/release/`.
+
+## Binaries
+
+### `cbor-web-validate`
+
+Verifies that a file conforms to the read protocol: self-described CBOR tag
+(`55799`), required keys (0, 1, 2, 5), valid types, valid access tiers,
+known block types, and canonical-length encoding (RFC 8949 §4.2).
+
+```sh
+cbor-web-validate examples/pacific-planet.cbor
+cbor-web-validate --strict examples/*.cbor   # warnings become errors
+```
+
+Exit code is 0 if every file is valid, 1 otherwise.
+
+### `cbor-web-decode`
+
+Pretty-prints a CBOR-Web file as JSON. Integer top-level keys appear as their
+string form (`"0"`, `"1"`, …). Use `--preview` to truncate page content to
+the first five blocks per page (useful for human-readable previews next to
+binary files).
+
+```sh
+cbor-web-decode examples/pacific-planet.cbor              # full JSON
+cbor-web-decode examples/pacific-planet.cbor --preview    # truncated
+```
+
+### `cbor-web-gen`
+
+Builds a CBOR-Web file from a YAML source. The generator fills in defaults
+(security.default_access = `T2`, navigation.main = first 10 `T2` pages,
+meta.total_pages, meta.generator).
+
+```sh
+cbor-web-gen tools/examples/site.yaml -o examples/site.cbor
+```
+
+See `tools/examples/site.yaml` for the source format.
+
+### `cbor-web-migrate`
+
+Converts a legacy 4-keys CBOR-Web file (pages mapped under key 3) to the v3.0
+structure with 7 keys (pages as an array under key 5). Used once to migrate
+the existing `examples/`; kept available for anyone holding legacy files.
+
+```sh
+cbor-web-migrate old.cbor -o new.cbor
+```
+
+## What the validator checks
+
+| Check | Severity |
+|-------|----------|
+| First 3 bytes = `d9 d9 f7` (tag 55799) | error |
+| Root is a CBOR map | error |
+| Required keys present (0 type, 1 version, 2 site, 5 pages) | error |
+| Key 0 equals `"cbor-web"` | error |
+| Key 1 equals `3` | error |
+| `site.domain` and `site.name` are text strings | error |
+| `security.default_access` is one of `T0`/`T1`/`T2` | error |
+| Each page has `path`, `title`, `lang`, `content` | error |
+| `page.access` is one of `T0`/`T1`/`T2` | error |
+| Each content block has a `t` (type) field | error |
+| Block `t` is a known type (`h`/`p`/`ul`/...) | warning |
+| Re-encoded length matches original (canonical RFC 8949 §4.2) | warning |
+
+Unknown top-level keys are accepted silently — RFC 8949 §4.2 requires that
+agents tolerate forward-compatible extensions.
+
+## Adding a new check
+
+Open `src/lib.rs`, locate `validate_bytes`, and append to the `Report` via
+`r.err` (hard failure) or `r.warn` (soft signal). Keep the checks ordered so
+that earlier failures stop the validator from cascading misleading errors.

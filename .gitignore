@@ -1,15 +1,9 @@
-# Binary/compiled files (except examples)
+# Binary/compiled files (keep examples)
 *.cbor
 !examples/*.cbor
 
-# Build artifacts
-/dist
-/build
-/node_modules
-/__pycache__
-*.pyc
-*.o
-*.so
+# Rust build artefacts (Cargo.lock IS checked in for reproducible binaries)
+/tools/target
 
 # IDE
 .vscode
@@ -23,6 +17,3 @@ Thumbs.db
 
 # Logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
