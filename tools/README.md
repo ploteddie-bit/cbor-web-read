@@ -54,13 +54,39 @@ See `tools/examples/site.yaml` for the source format.
 
 ### `cbor-web-migrate`
 
-Converts a legacy 4-keys CBOR-Web file (pages mapped under key 3) to the v3.0
-structure with 7 keys (pages as an array under key 5). Used once to migrate
-the existing `examples/`; kept available for anyone holding legacy files.
+One-shot converter: legacy 4-keys file (pages under key 3) → v3.0 7-keys
+structure. Output is canonical. Kept available for anyone holding legacy
+files; will be removed in a future major release.
 
 ```sh
 cbor-web-migrate old.cbor -o new.cbor
 ```
+
+### `cbor-web-canonicalize`
+
+Re-encodes a CBOR-Web file in canonical RFC 8949 §4.2 form: sorted map keys
+(length-first then bytewise), definite lengths, minimal integers. Run this
+on any file produced by a non-canonical encoder before signing or computing
+`page.hash`.
+
+```sh
+cbor-web-canonicalize in.cbor -o out.cbor
+```
+
+### `cbor-web-verify-signature`
+
+Verifies the Ed25519 signature in `meta.signature` against a public key the
+operator passes in (32-byte raw key, base64url — same format published in
+DNS TXT records as `pk=<base64url>`).
+
+```sh
+cbor-web-verify-signature site.cbor --pubkey "MCowBQYDK2VwAyEA…"
+cbor-web-verify-signature site.cbor --pubkey-file ./operator.pub
+```
+
+DNS TXT lookup is **not** part of this binary. It is a network dependency
+with its own caching, retry, and DNSSEC considerations; orchestration
+tooling can call this binary after performing its own lookup.
 
 ## What the validator checks
 
@@ -77,7 +103,10 @@ cbor-web-migrate old.cbor -o new.cbor
 | `page.access` is one of `T0`/`T1`/`T2` | error |
 | Each content block has a `t` (type) field | error |
 | Block `t` is a known type (`h`/`p`/`ul`/...) | warning |
-| Re-encoded length matches original (canonical RFC 8949 §4.2) | warning |
+| Re-encoded bytes match original (canonical RFC 8949 §4.2 strict) | warning |
+| `meta.total_pages` matches `pages.length` | error |
+| `page.hash` matches SHA-256 of canonical-encoded page (without `hash`) | error |
+| File size ≤ `--max-size` (default 5 MB per spec §6.2) | error |
 
 Unknown top-level keys are accepted silently — RFC 8949 §4.2 requires that
 agents tolerate forward-compatible extensions.

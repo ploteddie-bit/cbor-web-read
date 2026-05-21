@@ -24,7 +24,7 @@ What you expected to happen.
 - Attach or link to the file if possible
 
 **Environment**
-- Tool or library: e.g. `cbor-web-validate`, `ciborium 0.2`, `fxamacker/cbor v2.5`, `libcbor`
+- Tool or library: e.g. `cbor-web-validate`, `ciborium 0.2`, `fxamacker/cbor v2.5`
 - Language and version: e.g. Rust 1.78, Go 1.22
 - OS: e.g. Ubuntu 24.04, macOS 14
 

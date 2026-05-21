@@ -8,8 +8,12 @@ on:
 
 jobs:
   validate-examples:
-    name: Validate every examples/*.cbor against the spec
-    runs-on: ubuntu-latest
+    name: Validate examples/*.cbor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -23,7 +27,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             tools/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -31,10 +35,38 @@ jobs:
         run: cargo build --release --manifest-path tools/Cargo.toml --bin cbor-web-validate
 
       - name: Validate every example
-        run: ./tools/target/release/cbor-web-validate examples/*.cbor
+        shell: bash
+        run: ./tools/target/release/cbor-web-validate --strict examples/*.cbor
+
+  rust-tests:
+    name: cargo test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry and build artefacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tools/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: cargo test
+        run: cargo test --manifest-path tools/Cargo.toml --all-targets
 
   roundtrip:
-    name: YAML -> CBOR -> validate round-trip
+    name: YAML -> CBOR -> validate -> sign -> verify (ubuntu)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +81,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             tools/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('tools/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -59,7 +91,7 @@ jobs:
       - name: Generate sample site from YAML
         run: ./tools/target/release/cbor-web-gen tools/examples/site.yaml -o /tmp/roundtrip.cbor
 
-      - name: Validate the generated file
+      - name: Validate the generated file (strict)
         run: ./tools/target/release/cbor-web-validate --strict /tmp/roundtrip.cbor
 
   json-preview:
@@ -67,8 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Parse JSON
-        run: python3 -c "import json, sys; json.load(open('examples/example-readable.json')); print('OK')"
+      - name: Parse JSON with jq
+        run: jq . examples/example-readable.json > /dev/null && echo OK
 
   rust-checks:
     name: cargo fmt + clippy
@@ -82,4 +114,16 @@ jobs:
       - name: cargo fmt --check
         run: cargo fmt --manifest-path tools/Cargo.toml --check
       - name: cargo clippy
-        run: cargo clippy --manifest-path tools/Cargo.toml --release -- -D warnings
+        run: cargo clippy --manifest-path tools/Cargo.toml --release --all-targets -- -D warnings
+
+  security-audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Run cargo audit
+        run: cargo audit --file tools/Cargo.lock

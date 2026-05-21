@@ -37,7 +37,7 @@ CSS, no DOM — just a self-described CBOR document that decodes in one pass.
 
 | Concern | Improvement |
 |---|---|
-| Bytes on the wire | Typically ~10–50× lighter than the equivalent HTML page (no markup, no styling, no scripts) |
+| Bytes on the wire | Substantially lighter than the equivalent HTML page (no markup, no styling, no scripts). See [`bench/`](bench/) for the methodology and current measurements. |
 | Requests per site | 1 (vs 50–100 for an HTML page with assets) |
 | Parser determinism | Strict typing (RFC 8949), no DOM, no CSS-selector fragility |
 | Crawler load on origin | One static file, easy to CDN and cache |
@@ -98,10 +98,12 @@ A Rust implementation lives in [`tools/`](tools/). It provides four binaries:
 
 | Binary | Purpose |
 |---|---|
-| `cbor-web-validate` | Check that a file conforms to the spec (tag 55799, required keys, types, deterministic encoding) |
+| `cbor-web-validate` | Check that a file conforms to the spec (tag 55799, required keys, canonical encoding, `page.hash`, `meta.total_pages`, size cap) |
 | `cbor-web-decode` | Pretty-print a `.cbor` file as JSON (full or truncated preview) |
-| `cbor-web-gen` | Build a `.cbor` from a YAML source file |
-| `cbor-web-migrate` | Convert legacy 4-keys files (pages under key 3) to the v3.0 structure |
+| `cbor-web-gen` | Build a canonical `.cbor` from a YAML source file |
+| `cbor-web-canonicalize` | Re-encode a `.cbor` file in canonical RFC 8949 §4.2 form (required before signing) |
+| `cbor-web-verify-signature` | Verify a `meta.signature` (Ed25519) against a public key |
+| `cbor-web-migrate` | One-shot: convert legacy 4-keys files to v3.0 (will be removed in a future major release) |
 
 Build:
 
@@ -127,8 +129,6 @@ compatible libraries:
 |---|---|
 | Rust | [`ciborium`](https://crates.io/crates/ciborium) (used by this repo) |
 | Go | [`fxamacker/cbor`](https://github.com/fxamacker/cbor) |
-| C / C++ | [`libcbor`](https://github.com/PJK/libcbor) |
-| Java | [`jackson-dataformat-cbor`](https://github.com/FasterXML/jackson-dataformats-binary) |
 
 These are **CBOR codecs**, not CBOR-Web libraries. They give you the
 encoding/decoding primitives; the protocol-specific structure (the 7 keys,

@@ -1,11 +1,13 @@
 [package]
 name = "cbor-web-tools"
-version = "0.1.0"
+version = "3.0.0"
 edition = "2021"
 license = "CC0-1.0"
-description = "Reference implementation of the CBOR-Web read protocol: validator, generator, decoder"
+description = "Reference implementation of the CBOR-Web read protocol: validator, generator, decoder, canonicaliser, signature verifier"
 repository = "https://github.com/ploteddie-bit/cbor-web-read"
 readme = "README.md"
+keywords = ["cbor", "cbor-web", "rfc8949", "binary-web", "machine-readable"]
+categories = ["encoding", "web-programming", "command-line-utilities"]
 
 [[bin]]
 name = "cbor-web-validate"
@@ -23,6 +25,14 @@ path = "src/bin/decode.rs"
 name = "cbor-web-migrate"
 path = "src/bin/migrate.rs"
 
+[[bin]]
+name = "cbor-web-canonicalize"
+path = "src/bin/canonicalize.rs"
+
+[[bin]]
+name = "cbor-web-verify-signature"
+path = "src/bin/verify_signature.rs"
+
 [lib]
 path = "src/lib.rs"
 
@@ -35,6 +45,11 @@ serde_yaml = "0.9"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
 sha2 = "0.10"
+ed25519-dalek = "2"
+base64 = "0.22"
+
+[dev-dependencies]
+proptest = "1"
 
 [profile.release]
 opt-level = "z"
