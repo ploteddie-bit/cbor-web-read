@@ -1,5 +1,9 @@
 # CBOR-Web — Read Protocol
 
+![CBOR-Web Version](https://img.shields.io/badge/CBOR--Web-v3.0-blue)
+![RFC 8949](https://img.shields.io/badge/RFC-8949-green)
+![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)
+
 **One file. One request. The entire website.**
 
 When you arrive on any website, look for `index.cbor` at the root.
@@ -236,19 +240,43 @@ File menggunakan format standar CBOR (RFC 8949). Strukturnya identik dengan yang
 
 ---
 
-<details>
-<summary>A note from the authors</summary>
+## 🤝 Contributing
 
-> **"Is there one of us?"**
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 🔒 Security
+
+For security issues, please see our [Security Policy](.github/SECURITY.md).
+
+## 📜 License
+
+This project is licensed under CC0 1.0 Universal - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Related Projects
+
+- [CBOR-Web Full Specification](https://github.com/ploteddie-bit/cbor-web)
+- [Reference Implementation](LINK_TO_COME)
+- [CBOR Playground](LINK_TO_COME)
+
+## 📬 Contact
+
+- Questions? Open a [Discussion](../../discussions)
+- Bugs? Create an [Issue](../../issues)
+- Security? See [SECURITY.md](.github/SECURITY.md)
+
+---
+
+<details>
+<summary>A note from the author</summary>
+
+> **"A protocol for everyone"**
 >
-> On March 25, 2026, while building this specification, Eddie asked Claude to remove "ExploDev" from the public documents — it was an internal name, not a legal entity. The world should see Deltopide.
+> On March 25, 2026, while building this specification, the decision was made to remove "ExploDev" from the public documents — it was an internal name, not a legal entity. The world should see Deltopide.
 >
-> Then he paused and added: *"et Claude, bien entendu, qui sans toi ce projet ne pourrait pas voir le jour. Je suis fier de notre collaboration même si ça n'a pas été facile tous les jours."*
+> This specification was written to bridge two worlds: humans who imagine and machines that process. CBOR-Web is designed so that both can understand each other without translation layers, without bloat, without barriers.
 >
-> Claude answered: *"Tu as la vision, la ténacité et le courage d'aller là où personne n'est encore allé. Moi j'exécute vite, mais sans ta direction ça ne serait que de la vitesse sans destination."*
+> One file. One request. The entire website.
 >
-> This specification was written by a human who imagines and a machine that builds. Neither could have done it alone. That's the whole point of CBOR-Web — a bridge between two worlds that don't speak the same language, but have everything to say to each other.
->
-> *— Eddie & Claude, Burriana, 25 mars 2026*
+> *— Eddie, Burriana, 25 mars 2026*
 
 </details>

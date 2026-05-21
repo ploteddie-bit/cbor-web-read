@@ -1,0 +1,164 @@
+name: CBOR Validation
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-cbor:
+    name: Validate CBOR Files
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install cbor2
+    
+    - name: Validate CBOR syntax
+      run: |
+        echo "=== Validating CBOR files ==="
+        python -c "
+import cbor2
+import sys
+from pathlib import Path
+
+errors = []
+cbor_files = list(Path('examples').glob('*.cbor'))
+
+if not cbor_files:
+    print('⚠️ No CBOR files found in examples/')
+    sys.exit(0)
+
+print(f'Found {len(cbor_files)} CBOR file(s)\n')
+
+for cbor_file in cbor_files:
+    try:
+        with open(cbor_file, 'rb') as f:
+            data = cbor2.load(f)
+        print(f'✓ {cbor_file.name} - Valid CBOR ({cbor_file.stat().st_size:,} bytes)')
+    except Exception as e:
+        errors.append(f'{cbor_file.name}: {e}')
+        print(f'✗ {cbor_file.name} - {e}')
+
+print()
+if errors:
+    print(f'❌ {len(errors)} file(s) failed validation')
+    for error in errors:
+        print(f'  - {error}')
+    sys.exit(1)
+else:
+    print(f'✅ All {len(cbor_files)} file(s) are valid!')
+"
+    
+    - name: Check CBOR structure
+      run: |
+        echo "=== Checking CBOR structure ==="
+        python -c "
+import cbor2
+import sys
+from pathlib import Path
+
+required_keys = {0, 1, 2, 3}
+errors = []
+
+for cbor_file in Path('examples').glob('*.cbor'):
+    with open(cbor_file, 'rb') as f:
+        data = cbor2.load(f)
+    
+    # Check root type
+    if not isinstance(data, dict):
+        errors.append(f'{cbor_file.name}: Root is not a map (got {type(data).__name__})')
+        continue
+    
+    # Check required keys
+    missing = required_keys - set(data.keys())
+    if missing:
+        errors.append(f'{cbor_file.name}: Missing required keys {missing}')
+        continue
+    
+    # Check key 0 (type identifier)
+    if data[0] != 'cbor-web':
+        errors.append(f'{cbor_file.name}: Key 0 should be \"cbor-web\", got \"{data[0]}\"')
+        continue
+    
+    # Check key 1 (version)
+    if not isinstance(data[1], int) or data[1] < 1:
+        errors.append(f'{cbor_file.name}: Key 1 (version) should be a positive integer')
+        continue
+    
+    # Check key 2 (metadata)
+    if not isinstance(data[2], dict):
+        errors.append(f'{cbor_file.name}: Key 2 (metadata) should be a map')
+        continue
+    
+    # Check key 3 (pages)
+    if not isinstance(data[3], dict):
+        errors.append(f'{cbor_file.name}: Key 3 (pages) should be a map')
+        continue
+    
+    # Check for self-describing tag (55799)
+    # Note: cbor2 doesn't preserve tags by default, so we skip this check
+    
+    print(f'✓ {cbor_file.name}: Structure valid')
+
+if errors:
+    print()
+    print('❌ Structure errors found:')
+    for error in errors:
+        print(f'  - {error}')
+    sys.exit(1)
+else:
+    print()
+    print('✅ All files have valid structure!')
+"
+  
+  check-examples:
+    name: Check Example JSON
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Validate example JSON
+      run: |
+        echo "=== Validating example JSON files ==="
+        python -c "
+import json
+import sys
+from pathlib import Path
+
+errors = []
+json_files = list(Path('examples').glob('*.json'))
+
+if not json_files:
+    print('⚠️ No JSON files found in examples/')
+    sys.exit(0)
+
+for json_file in json_files:
+    try:
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+        print(f'✓ {json_file.name} - Valid JSON')
+    except Exception as e:
+        errors.append(f'{json_file.name}: {e}')
+        print(f'✗ {json_file.name} - {e}')
+
+if errors:
+    print()
+    print(f'❌ {len(errors)} file(s) failed validation')
+    sys.exit(1)
+else:
+    print(f'✅ All {len(json_files)} JSON file(s) are valid!')
+"
