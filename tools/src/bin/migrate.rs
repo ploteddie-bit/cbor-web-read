@@ -23,6 +23,9 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
+    eprintln!(
+        "cbor-web-migrate is a one-shot tool for the legacy 4-keys layout. It will be removed in a future major release once such files are no longer in circulation."
+    );
     let bytes =
         fs::read(&args.input).with_context(|| format!("reading {}", args.input.display()))?;
     let value: Value = ciborium::de::from_reader(&bytes[..])
@@ -92,8 +95,7 @@ fn main() -> Result<()> {
     ];
 
     let root = Value::Tag(55799, Box::new(Value::Map(entries)));
-    let mut out = Vec::new();
-    ciborium::ser::into_writer(&root, &mut out).map_err(|e| anyhow!("encode error: {e}"))?;
+    let out = cbor_web_tools::canonical_bytes(&root)?;
     fs::write(&args.output, &out).with_context(|| format!("writing {}", args.output.display()))?;
     println!(
         "migrated {} ({} bytes) -> {} ({} bytes, {} pages)",

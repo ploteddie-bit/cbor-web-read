@@ -166,8 +166,45 @@ pub fn validate_bytes(bytes: &[u8]) -> Result<Report> {
     };
 
     check_keys(map, &mut r);
-    check_determinism(bytes, &value, &mut r);
+    check_total_pages(map, &mut r);
+    check_page_hashes(map, &mut r);
+    check_canonical(bytes, &value, &mut r);
     Ok(r)
+}
+
+/// Re-encode a CBOR value into bytes that strictly follow RFC 8949 §4.2:
+/// definite-length items, deterministic integer encoding, and map keys sorted
+/// by length-first then bytewise. ciborium gives us most of this for free; we
+/// enforce the map-key sort manually because ciborium emits keys in insertion
+/// order.
+pub fn canonical_bytes(v: &Value) -> Result<Vec<u8>> {
+    let canon = canonicalise(v);
+    let mut out = Vec::new();
+    ciborium::ser::into_writer(&canon, &mut out).map_err(|e| anyhow!("encode error: {e}"))?;
+    Ok(out)
+}
+
+fn canonicalise(v: &Value) -> Value {
+    match v {
+        Value::Map(entries) => {
+            let mut canon_entries: Vec<(Vec<u8>, Value, Value)> = entries
+                .iter()
+                .map(|(k, val)| {
+                    let mut k_bytes = Vec::new();
+                    let _ = ciborium::ser::into_writer(k, &mut k_bytes);
+                    (k_bytes, canonicalise(k), canonicalise(val))
+                })
+                .collect();
+            canon_entries.sort_by(|a, b| match a.0.len().cmp(&b.0.len()) {
+                std::cmp::Ordering::Equal => a.0.cmp(&b.0),
+                other => other,
+            });
+            Value::Map(canon_entries.into_iter().map(|(_, k, v)| (k, v)).collect())
+        }
+        Value::Array(items) => Value::Array(items.iter().map(canonicalise).collect()),
+        Value::Tag(t, inner) => Value::Tag(*t, Box::new(canonicalise(inner))),
+        other => other.clone(),
+    }
 }
 
 fn as_int(v: &Value) -> Option<i128> {
@@ -357,6 +394,86 @@ fn check_page(v: &Value, idx: usize, r: &mut Report) {
     }
 }
 
+/// `meta.total_pages` SHOULD equal `pages.len()`. Mismatches are usually
+/// generator bugs.
+fn check_total_pages(map: &[(Value, Value)], r: &mut Report) {
+    let meta = map.iter().find_map(|(k, v)| {
+        if as_int(k) == Some(keys::META) {
+            Some(v)
+        } else {
+            None
+        }
+    });
+    let pages = map.iter().find_map(|(k, v)| {
+        if as_int(k) == Some(keys::PAGES) {
+            Some(v)
+        } else {
+            None
+        }
+    });
+    let (Some(Value::Map(meta_map)), Some(Value::Array(pages_arr))) = (meta, pages) else {
+        return;
+    };
+    let declared = meta_map.iter().find_map(|(k, v)| match (k, v) {
+        (Value::Text(t), val) if t == "total_pages" => as_int(val),
+        _ => None,
+    });
+    if let Some(n) = declared {
+        let actual = pages_arr.len() as i128;
+        if n != actual {
+            r.err(format!(
+                "meta.total_pages ({n}) does not match pages.len() ({actual})"
+            ));
+        }
+    }
+}
+
+/// For each page that declares a `hash`, recompute SHA-256 over the canonical
+/// encoding of the page map with the `hash` field removed and compare.
+fn check_page_hashes(map: &[(Value, Value)], r: &mut Report) {
+    let pages = map.iter().find_map(|(k, v)| {
+        if as_int(k) == Some(keys::PAGES) {
+            Some(v)
+        } else {
+            None
+        }
+    });
+    let Some(Value::Array(pages_arr)) = pages else {
+        return;
+    };
+    for (idx, page) in pages_arr.iter().enumerate() {
+        let Value::Map(fields) = page else { continue };
+        let declared = fields.iter().find_map(|(k, v)| match (k, v) {
+            (Value::Text(t), Value::Bytes(b)) if t == "hash" => Some(b.clone()),
+            _ => None,
+        });
+        let Some(expected) = declared else { continue };
+        if expected.len() != 32 {
+            r.err(format!(
+                "page[{idx}].hash must be 32 bytes (SHA-256), got {} bytes",
+                expected.len()
+            ));
+            continue;
+        }
+        let stripped: Vec<(Value, Value)> = fields
+            .iter()
+            .filter(|(k, _)| !matches!(k, Value::Text(t) if t == "hash"))
+            .cloned()
+            .collect();
+        let canon = match canonical_bytes(&Value::Map(stripped)) {
+            Ok(b) => b,
+            Err(_) => continue,
+        };
+        use sha2::Digest;
+        let actual = sha2::Sha256::digest(&canon);
+        if actual.as_slice() != expected.as_slice() {
+            r.err(format!(
+                "page[{idx}].hash does not match SHA-256 of the page (with `hash` field removed) in canonical CBOR encoding"
+            ));
+        }
+    }
+}
+
 fn check_block(v: &Value, page_path: &str, j: usize, r: &mut Report) {
     let Value::Map(m) = v else {
         r.err(format!("page {page_path} block[{j}] not a map"));
@@ -381,19 +498,23 @@ fn check_block(v: &Value, page_path: &str, j: usize, r: &mut Report) {
     }
 }
 
-/// Check deterministic encoding (RFC 8949 §4.2) by re-encoding canonically and
-/// comparing byte lengths. Exact byte equality is too strict given that the file
-/// may legitimately contain content that ciborium re-orders identically — we
-/// flag *length divergence* as a warning, not a hard error.
-fn check_determinism(original: &[u8], value: &Value, r: &mut Report) {
-    let mut re_encoded = Vec::with_capacity(original.len());
-    if ciborium::ser::into_writer(value, &mut re_encoded).is_err() {
-        r.warn("could not re-encode for determinism check");
-        return;
-    }
-    if re_encoded.len() != original.len() {
+/// Check canonical encoding (RFC 8949 §4.2) by re-encoding the document
+/// canonically (sorted map keys, definite lengths, minimal integers) and
+/// comparing bytes. Any difference is a warning — the file is still a valid
+/// CBOR-Web document, but it does not match the canonical form a verifier
+/// would compute, which means signatures and `page.hash` values produced by
+/// strict encoders will not match.
+fn check_canonical(original: &[u8], value: &Value, r: &mut Report) {
+    let re_encoded = match canonical_bytes(value) {
+        Ok(b) => b,
+        Err(_) => {
+            r.warn("could not re-encode for canonical check");
+            return;
+        }
+    };
+    if re_encoded != original {
         r.warn(format!(
-            "encoded length differs from canonical re-encode ({} vs {} bytes) — file may not be canonically encoded per RFC 8949 §4.2",
+            "file is not canonically encoded per RFC 8949 §4.2 ({} bytes original, {} bytes canonical) — signatures and hashes computed by strict encoders will not match",
             original.len(),
             re_encoded.len()
         ));
@@ -416,9 +537,7 @@ pub fn encode_site(doc: &SiteDoc) -> Result<Vec<u8>> {
     ];
 
     let root = Value::Tag(SELF_DESCRIBED_TAG, Box::new(Value::Map(entries)));
-    let mut out = Vec::new();
-    ciborium::ser::into_writer(&root, &mut out).map_err(|e| anyhow!("encode error: {e}"))?;
-    Ok(out)
+    canonical_bytes(&root)
 }
 
 fn int(n: i128) -> Value {
@@ -583,6 +702,48 @@ fn meta_to_value(m: &MetaInfo, total_pages: usize) -> Value {
     Value::Map(out)
 }
 
+/// Extract from a CBOR-Web file the exact bytes that a strict verifier must
+/// sign-check against `meta.signature`: the document, in canonical form,
+/// with the `signature` entry of the `meta` map removed.
+pub fn bytes_for_signature(file_bytes: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
+    let value: Value = ciborium::de::from_reader(file_bytes).context("decoding source CBOR")?;
+    let (tag, mut inner) = match value {
+        Value::Tag(t, b) => (Some(t), *b),
+        other => (None, other),
+    };
+    let Value::Map(root_entries) = &mut inner else {
+        bail!("root is not a map");
+    };
+    let mut signature: Option<Vec<u8>> = None;
+    for (k, v) in root_entries.iter_mut() {
+        if as_int(k) != Some(keys::META) {
+            continue;
+        }
+        let Value::Map(meta_entries) = v else {
+            continue;
+        };
+        meta_entries.retain(|(mk, mv)| {
+            if matches!(mk, Value::Text(t) if t == "signature") {
+                if let Value::Bytes(b) = mv {
+                    signature = Some(b.clone());
+                }
+                false
+            } else {
+                true
+            }
+        });
+    }
+    let Some(sig) = signature else {
+        bail!("no meta.signature found in file");
+    };
+    let stripped = match tag {
+        Some(t) => Value::Tag(t, Box::new(inner)),
+        None => inner,
+    };
+    let signed_bytes = canonical_bytes(&stripped)?;
+    Ok((signed_bytes, sig))
+}
+
 /// Decode a CBOR-Web file to a JSON-friendly serde_json::Value for inspection.
 pub fn decode_to_json(bytes: &[u8]) -> Result<serde_json::Value> {
     let v: Value = ciborium::de::from_reader(bytes).context("CBOR decode failed")?;
@@ -634,4 +795,205 @@ fn hex(b: &[u8]) -> String {
         out.push_str(&format!("{:02x}", byte));
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn minimal_doc() -> Value {
+        Value::Tag(
+            SELF_DESCRIBED_TAG,
+            Box::new(Value::Map(vec![
+                (int(0), Value::Text("cbor-web".into())),
+                (int(1), int(3)),
+                (
+                    int(2),
+                    Value::Map(vec![
+                        (Value::Text("domain".into()), Value::Text("ex.com".into())),
+                        (Value::Text("name".into()), Value::Text("Ex".into())),
+                    ]),
+                ),
+                (
+                    int(5),
+                    Value::Array(vec![Value::Map(vec![
+                        (Value::Text("path".into()), Value::Text("/".into())),
+                        (Value::Text("title".into()), Value::Text("Home".into())),
+                        (Value::Text("lang".into()), Value::Text("en".into())),
+                        (Value::Text("access".into()), Value::Text("T2".into())),
+                        (
+                            Value::Text("content".into()),
+                            Value::Array(vec![Value::Map(vec![
+                                (Value::Text("t".into()), Value::Text("p".into())),
+                                (Value::Text("v".into()), Value::Text("hello".into())),
+                            ])]),
+                        ),
+                    ])]),
+                ),
+            ])),
+        )
+    }
+
+    #[test]
+    fn canonical_sorts_map_keys_length_first_then_bytewise() {
+        // {"bb": 1, "a": 2} → canonical orders shorter key first
+        let v = Value::Map(vec![
+            (Value::Text("bb".into()), int(1)),
+            (Value::Text("a".into()), int(2)),
+        ]);
+        let bytes = canonical_bytes(&v).unwrap();
+        let decoded: Value = ciborium::de::from_reader(&bytes[..]).unwrap();
+        let Value::Map(entries) = decoded else {
+            panic!("not a map");
+        };
+        let first_key = match &entries[0].0 {
+            Value::Text(s) => s.clone(),
+            _ => panic!(),
+        };
+        assert_eq!(first_key, "a", "shorter key must come first");
+    }
+
+    #[test]
+    fn canonical_is_idempotent() {
+        let v = minimal_doc();
+        let once = canonical_bytes(&v).unwrap();
+        let decoded: Value = ciborium::de::from_reader(&once[..]).unwrap();
+        let twice = canonical_bytes(&decoded).unwrap();
+        assert_eq!(once, twice, "canonical encoding must be a fixed point");
+    }
+
+    #[test]
+    fn validate_rejects_missing_tag() {
+        let mut bytes = canonical_bytes(&minimal_doc()).unwrap();
+        // Strip the 3-byte self-described tag header (d9 d9 f7).
+        bytes.drain(0..3);
+        let r = validate_bytes(&bytes).unwrap();
+        assert!(
+            r.errors
+                .iter()
+                .any(|e| e.contains("missing self-described")),
+            "errors: {:?}",
+            r.errors
+        );
+    }
+
+    #[test]
+    fn validate_accepts_minimal_canonical_doc() {
+        let bytes = canonical_bytes(&minimal_doc()).unwrap();
+        let r = validate_bytes(&bytes).unwrap();
+        assert!(r.ok(), "errors: {:?}", r.errors);
+        assert!(
+            r.warnings.is_empty(),
+            "unexpected warnings: {:?}",
+            r.warnings
+        );
+    }
+
+    #[test]
+    fn validate_detects_total_pages_mismatch() {
+        // Add a meta with total_pages = 99 while pages.len() == 1.
+        let mut doc = minimal_doc();
+        if let Value::Tag(_, inner) = &mut doc {
+            if let Value::Map(entries) = inner.as_mut() {
+                entries.push((
+                    int(6),
+                    Value::Map(vec![(Value::Text("total_pages".into()), int(99))]),
+                ));
+            }
+        }
+        let bytes = canonical_bytes(&doc).unwrap();
+        let r = validate_bytes(&bytes).unwrap();
+        assert!(
+            r.errors.iter().any(|e| e.contains("total_pages")),
+            "errors: {:?}",
+            r.errors
+        );
+    }
+
+    #[test]
+    fn validate_detects_wrong_page_hash() {
+        // Inject a 32-byte all-zeros hash on the page — won't match SHA-256.
+        let mut doc = minimal_doc();
+        if let Value::Tag(_, inner) = &mut doc {
+            if let Value::Map(entries) = inner.as_mut() {
+                for (k, v) in entries.iter_mut() {
+                    if as_int(k) == Some(keys::PAGES) {
+                        if let Value::Array(pages) = v {
+                            if let Value::Map(p) = &mut pages[0] {
+                                p.push((Value::Text("hash".into()), Value::Bytes(vec![0u8; 32])));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let bytes = canonical_bytes(&doc).unwrap();
+        let r = validate_bytes(&bytes).unwrap();
+        assert!(
+            r.errors.iter().any(|e| e.contains("hash does not match")),
+            "errors: {:?}",
+            r.errors
+        );
+    }
+
+    #[test]
+    fn validate_warns_on_unknown_block_type() {
+        let mut doc = minimal_doc();
+        if let Value::Tag(_, inner) = &mut doc {
+            if let Value::Map(entries) = inner.as_mut() {
+                for (k, v) in entries.iter_mut() {
+                    if as_int(k) == Some(keys::PAGES) {
+                        if let Value::Array(pages) = v {
+                            if let Value::Map(p) = &mut pages[0] {
+                                for (pk, pv) in p.iter_mut() {
+                                    if matches!(pk, Value::Text(s) if s == "content") {
+                                        *pv = Value::Array(vec![Value::Map(vec![(
+                                            Value::Text("t".into()),
+                                            Value::Text("never-heard-of-this".into()),
+                                        )])]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let bytes = canonical_bytes(&doc).unwrap();
+        let r = validate_bytes(&bytes).unwrap();
+        assert!(r.ok(), "should not be a hard error");
+        assert!(
+            r.warnings.iter().any(|w| w.contains("unknown block type")),
+            "warnings: {:?}",
+            r.warnings
+        );
+    }
+
+    #[test]
+    fn bytes_for_signature_round_trip() {
+        // Build a doc with a fake signature, then extract → re-canonicalise.
+        let mut doc = minimal_doc();
+        if let Value::Tag(_, inner) = &mut doc {
+            if let Value::Map(entries) = inner.as_mut() {
+                entries.push((
+                    int(6),
+                    Value::Map(vec![
+                        (Value::Text("generator".into()), Value::Text("test".into())),
+                        (Value::Text("signature".into()), Value::Bytes(vec![7u8; 64])),
+                    ]),
+                ));
+            }
+        }
+        let file_bytes = canonical_bytes(&doc).unwrap();
+        let (signed, sig) = bytes_for_signature(&file_bytes).unwrap();
+        assert_eq!(sig, vec![7u8; 64]);
+        // signed bytes must round-trip and contain no `signature` key.
+        let decoded: Value = ciborium::de::from_reader(&signed[..]).unwrap();
+        let json = decode_to_json(&signed).unwrap();
+        assert!(
+            !serde_json::to_string(&json).unwrap().contains("signature"),
+            "signature must be stripped before signing: {:?}",
+            decoded
+        );
+    }
 }

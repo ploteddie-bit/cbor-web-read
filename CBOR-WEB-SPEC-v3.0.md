@@ -140,7 +140,7 @@ Agents MUST ignore unknown keys (forward compatibility).
 | `content` | array | YES | Ordered array of content blocks (§5) |
 | `description` | text | NO | Short description |
 | `updated` | tag 1 | NO | Last-modified timestamp (epoch seconds) |
-| `hash` | bstr | NO | SHA-256 of serialised content (32 bytes) |
+| `hash` | bstr | NO | SHA-256 of the canonical CBOR encoding of the page map with the `hash` field itself removed (32 bytes). See §6.3. |
 | `alternates` | map | NO | Language alternates `{"fr": "/fr/page"}` |
 | `structured_data` | map | NO | Schema.org typed object |
 
@@ -221,6 +221,43 @@ permits forward-compatible extensions.
 | `index.cbor` (>500 pages) | Paginated (§7) |
 | Per-page content | 1 MB |
 
+Consumers SHOULD reject files larger than these caps before decoding, as a
+denial-of-service mitigation.
+
+### 6.3 Hash and signature byte boundaries
+
+To remove ambiguity for implementers:
+
+**`page.hash` (per page, §3.2)** — when present, MUST equal
+`SHA-256(canonical_cbor(page_map_without_hash_field))`:
+
+1. Take the page map (an entry of the key-5 pages array).
+2. Remove the `hash` entry if present.
+3. Encode the resulting map canonically per §6.1.
+4. Compute SHA-256 over those bytes.
+5. Compare to the value of `hash` (32-byte bstr).
+
+**`meta.signature` (§8)** — when present, MUST sign
+`canonical_cbor(document_without_meta_signature)`:
+
+1. Take the entire document (including the `D9 D9 F7` self-described tag).
+2. In the `meta` map (key 6), remove the `signature` entry if present.
+3. Encode the resulting tagged map canonically per §6.1.
+4. The signed message is exactly those bytes.
+5. The signature value (64-byte bstr for Ed25519) MUST verify against the
+   public key that the publisher advertises in the DNS TXT record (§8).
+
+The reference implementation in `tools/` exposes
+`cbor_web_tools::bytes_for_signature(file_bytes)` which performs steps 1-4
+and returns `(signed_bytes, signature)`.
+
+### 6.4 Derivable fields
+
+`meta.total_pages`, when present, MUST equal the length of the key-5 pages
+array. It is included for fast inspection only; consumers MAY ignore it and
+recompute from `pages.length()`. Future revisions of this spec may drop the
+field.
+
 ---
 
 ## 7. Large sites (>500 pages)
@@ -261,6 +298,22 @@ document.
 
 DNS-based identity is optional. A site without DNS TXT or signature is still
 a valid CBOR-Web document — it simply offers no authentication guarantees.
+
+The bytes that are actually signed are precisely defined in §6.3.
+
+### 8.1 Algorithms
+
+CBOR-Web v3.0 defines exactly one mandatory-to-implement signature
+algorithm:
+
+| Algorithm | `pk` format in DNS TXT | Signature size | Notes |
+|---|---|---|---|
+| Ed25519 (RFC 8032) | 32-byte raw public key, base64url | 64 bytes | MTI |
+| ECDSA P-256 (FIPS 186-4) | SubjectPublicKeyInfo DER, base64url | 64 bytes (R\|\|S) | Optional |
+
+Implementations MUST support Ed25519. They MAY support P-256. The DNS TXT
+record's `v=3` field selects the protocol version; the algorithm is
+inferred from the key length and format (32 raw bytes = Ed25519).
 
 ---
 
