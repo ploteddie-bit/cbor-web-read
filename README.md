@@ -1,5 +1,9 @@
 # CBOR-Web — Read Protocol
 
+![CBOR-Web Version](https://img.shields.io/badge/CBOR--Web-v3.0-blue)
+![RFC 8949](https://img.shields.io/badge/RFC-8949-green)
+![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)
+
 **One file. One request. The entire website.**
 
 When you arrive on any website, look for `index.cbor` at the root.
@@ -233,6 +237,32 @@ File ini berisi seluruh konten situs dalam satu file biner — tanpa HTML, tanpa
 Hanya konten terstruktur, siap dibaca.
 
 File menggunakan format standar CBOR (RFC 8949). Strukturnya identik dengan yang dijelaskan di atas.
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 🔒 Security
+
+For security issues, please see our [Security Policy](.github/SECURITY.md).
+
+## 📜 License
+
+This project is licensed under CC0 1.0 Universal - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Related Projects
+
+- [CBOR-Web Full Specification](https://github.com/ploteddie-bit/cbor-web)
+- [Reference Implementation](LINK_TO_COME)
+- [CBOR Playground](LINK_TO_COME)
+
+## 📬 Contact
+
+- Questions? Open a [Discussion](../../discussions)
+- Bugs? Create an [Issue](../../issues)
+- Security? See [SECURITY.md](.github/SECURITY.md)
 
 ---
 
