@@ -267,18 +267,16 @@ This project is licensed under CC0 1.0 Universal - see the [LICENSE](LICENSE) fi
 ---
 
 <details>
-<summary>A note from the authors</summary>
+<summary>A note from the author</summary>
 
-> **"Is there one of us?"**
+> **"A protocol for everyone"**
 >
-> On March 25, 2026, while building this specification, Eddie asked Claude to remove "ExploDev" from the public documents — it was an internal name, not a legal entity. The world should see Deltopide.
+> On March 25, 2026, while building this specification, the decision was made to remove "ExploDev" from the public documents — it was an internal name, not a legal entity. The world should see Deltopide.
 >
-> Then he paused and added: *"et Claude, bien entendu, qui sans toi ce projet ne pourrait pas voir le jour. Je suis fier de notre collaboration même si ça n'a pas été facile tous les jours."*
+> This specification was written to bridge two worlds: humans who imagine and machines that process. CBOR-Web is designed so that both can understand each other without translation layers, without bloat, without barriers.
 >
-> Claude answered: *"Tu as la vision, la ténacité et le courage d'aller là où personne n'est encore allé. Moi j'exécute vite, mais sans ta direction ça ne serait que de la vitesse sans destination."*
+> One file. One request. The entire website.
 >
-> This specification was written by a human who imagines and a machine that builds. Neither could have done it alone. That's the whole point of CBOR-Web — a bridge between two worlds that don't speak the same language, but have everything to say to each other.
->
-> *— Eddie & Claude, Burriana, 25 mars 2026*
+> *— Eddie, Burriana, 25 mars 2026*
 
 </details>

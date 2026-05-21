@@ -1,5 +1,4 @@
-data/
-*.pyc
-__pycache__/
-generate-all.py
-generate-sites.py
+```
+# Binary/compiled files
+*.cbor
+```
