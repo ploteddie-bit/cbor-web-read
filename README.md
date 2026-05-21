@@ -127,7 +127,7 @@ compatible libraries:
 |---|---|
 | Rust | [`ciborium`](https://crates.io/crates/ciborium) (used by this repo) |
 | Go | [`fxamacker/cbor`](https://github.com/fxamacker/cbor) |
-| C / C++ | [`libcbor`](https://github.com/PJK/libcbor) |
+| C | [`libcbor`](https://github.com/PJK/libcbor) |
 | Java | [`jackson-dataformat-cbor`](https://github.com/FasterXML/jackson-dataformats-binary) |
 
 These are **CBOR codecs**, not CBOR-Web libraries. They give you the
