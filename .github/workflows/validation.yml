@@ -67,8 +67,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Parse JSON
-        run: python3 -c "import json, sys; json.load(open('examples/example-readable.json')); print('OK')"
+      - name: Parse JSON with jq
+        run: jq . examples/example-readable.json > /dev/null && echo OK
 
   rust-checks:
     name: cargo fmt + clippy
