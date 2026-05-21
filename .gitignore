@@ -1,4 +1,28 @@
-```
-# Binary/compiled files
+# Binary/compiled files (except examples)
 *.cbor
-```
+!examples/*.cbor
+
+# Build artifacts
+/dist
+/build
+/node_modules
+/__pycache__
+*.pyc
+*.o
+*.so
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
